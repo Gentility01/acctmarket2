@@ -7,6 +7,10 @@ import environ
 import dj_database_url
 import os
 
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
+
 
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
