@@ -7,10 +7,13 @@ import environ
 import dj_database_url
 import os
 
+
+
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # acctmarket2/
 APPS_DIR = BASE_DIR / "acctmarket2"
 env = environ.Env()
+
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
 if READ_DOT_ENV_FILE:
@@ -20,7 +23,7 @@ if READ_DOT_ENV_FILE:
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = env.bool("DJANGO_DEBUG", False)
+DEBUG = env.bool("DJANGO_DEBUG")
 # Local time zone. Choices are
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # though not all of them may be available with every OS.
@@ -49,7 +52,7 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 if not DEBUG:
     DATABASES = {
-        "default":{dj_database_url.parse(os.environ.get("DATABASE_URL"))}
+        "default":dj_database_url.parse(env("DATABASE_URL"))
     }
     DATABASES["default"]["ATOMIC_REQUESTS"] = True
 else:
@@ -60,9 +63,9 @@ else:
         }
     }
     
-    DATABASES["default"]["ATOMIC_REQUESTS"] = True
-# https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+#     DATABASES["default"]["ATOMIC_REQUESTS"] = True
+# # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
+# DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # URLS
 # ------------------------------------------------------------------------------

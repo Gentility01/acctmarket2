@@ -7,11 +7,12 @@ from .base import env
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = True
+# DEBUG = True
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
-    default="vjruok9G1eqDYAzbMm0PK2cABQnve73AILDuQxBxA170vb9Sil9ZSSmECbdKVsSm",
+    # default="vjruok9G1eqDYAzbMm0PK2cABQnve73AILDuQxBxA170vb9Sil9ZSSmECbdKVsSm",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]  # noqa: S104
