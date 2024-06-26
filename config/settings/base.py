@@ -4,6 +4,8 @@
 from pathlib import Path
 
 import environ
+import dj_database_url
+import os
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # acctmarket2/
@@ -45,8 +47,20 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
-
-
+if not DEBUG:
+    DATABASES = {
+        "default":{dj_database_url.parse(os.environ.get("DATABASE_URL"))}
+    }
+    DATABASES["default"]["ATOMIC_REQUESTS"] = True
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / "db.sqlite3",
+        }
+    }
+    
+    DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
