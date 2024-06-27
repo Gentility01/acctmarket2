@@ -98,6 +98,9 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.mfa",
     "allauth.socialaccount",
+    "cloudinary",
+    "cloudinary_storage",
+
 ]
 
 LOCAL_APPS = [
