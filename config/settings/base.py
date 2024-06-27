@@ -99,7 +99,7 @@ THIRD_PARTY_APPS = [
     "allauth.mfa",
     "allauth.socialaccount",
     "cloudinary",
-    "cloudinary_storage",
+    
 
 ]
 

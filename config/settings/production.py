@@ -41,15 +41,15 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool("DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", def
 
 # STORAGES
 # ------------------------------------------------------------------------------
-INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': env('CLOUDINARY_API_KEY'),
-    'API_SECRET': env('CLOUDINARY_API_SECRET'),
-}
+# INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
+#     'API_KEY': env('CLOUDINARY_API_KEY'),
+#     'API_SECRET': env('CLOUDINARY_API_SECRET'),
+# }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 
