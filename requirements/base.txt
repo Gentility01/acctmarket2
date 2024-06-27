@@ -13,7 +13,7 @@ crispy-bootstrap5==2024.2
 dj-database-url==2.2.0
 Django==4.2.13
 django-allauth==0.63.3
-django-auto-prefetch==1.4.0
+django-auto-prefetch==1.9.0
 django-ckeditor==6.7.1
 django-countries==7.6.1
 django-crispy-forms==2.2
