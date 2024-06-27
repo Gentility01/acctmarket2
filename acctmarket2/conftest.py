@@ -1,7 +1,7 @@
 import pytest
 
-from acctmarket2.users.models import User
-from acctmarket2.users.tests.factories import UserFactory
+from acctmarket2.applications.users.models import User
+from acctmarket2.applications.users.tests.factories import UserFactory
 
 
 @pytest.fixture(autouse=True)

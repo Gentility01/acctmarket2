@@ -54,22 +54,22 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
-if not DEBUG:
-    DATABASES = {
-        "default":dj_database_url.parse(env("DATABASE_URL"))
-    }
-    DATABASES["default"]["ATOMIC_REQUESTS"] = True
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / "db.sqlite3",
-        }
-    }
+
+DATABASES = {
+    "default":dj_database_url.parse(env("DATABASE_URL"))
+}
+DATABASES["default"]["ATOMIC_REQUESTS"] = True
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / "db.sqlite3",
+#         }
+#     }
     
 #     DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
-# DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -81,6 +81,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    "jazzmin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -98,13 +99,21 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.mfa",
     "allauth.socialaccount",
+    "multiupload",
+    "ckeditor",
+    "django_countries",
+    "taggit",
     "cloudinary",
     
 
 ]
 
 LOCAL_APPS = [
-    "acctmarket2.users",
+    "acctmarket2.applications.users",
+    "acctmarket2.applications.blog",
+    "acctmarket2.applications.ecommerce",
+    "acctmarket2.applications.home",
+    "acctmarket2.applications.support",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -208,7 +217,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "acctmarket2.users.context_processors.allauth_settings",
+                "acctmarket2.applications.users.context_processors.allauth_settings",
             ],
         },
     },
@@ -295,14 +304,68 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://docs.allauth.org/en/latest/account/configuration.html
-ACCOUNT_ADAPTER = "acctmarket2.users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "acctmarket2.applications.users.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
-ACCOUNT_FORMS = {"signup": "acctmarket2.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "acctmarket2.applications.users.forms.UserSignupForm"}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_ADAPTER = "acctmarket2.users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "acctmarket2.applications.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_FORMS = {"signup": "acctmarket2.users.forms.UserSocialSignupForm"}
+SOCIALACCOUNT_FORMS = {"signup": "acctmarket2.applications.users.forms.UserSocialSignupForm"}
 
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+# ckeditor
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_CONFIGS = {
+    "default": {
+        "skin": "moono",
+        "codeSnippet_theme": "monokai",
+        "toolbar": "all",
+        "extraPlugins": ",".join(
+            [
+                "codesnippet",
+                "widget",
+                "dialog",
+            ],
+        ),
+    },
+}
+
+
+# cloudinary
+cloudinary.config(
+    cloud_name=env("CLOUDINARY_CLOUD_NAME"),
+    api_key=env("CLOUDINARY_API_KEY"),
+    api_secret=env("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
+
+
+# pAYSTACK PAYMENT KEYS
+
+PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY")
+PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY")
+
+
+# Nowpayment integration
+NOWPAYMENTS_API_KEY = env("NOWPAYMENTS_API_KEY")
+
+
+# Jazmin settings
+JAZZMIN_SETTINGS = {
+    "site_title": "AcctMarket-Admin",
+    "site_header": "AcctMarket-Admin",
+    "site_brand": "AcctMarket-Admin",
+    "site_logo": "assets/images/logos/logoicon.png",
+    "login_logo": "AcctMarket-Admin",
+    "welcome_sign": "Welcome to AcctMarket",
+    "copyright": "AcctMarket ltd",
+    "search_model": "register.CustomUser",
+    "user_avatar": None,
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+    ]
+
+}
