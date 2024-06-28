@@ -1,7 +1,8 @@
-{% extends 'dashboard_base.html' %}
+{% extends "base.html" %}
 
 {% load static %}
 
+{% block main %}
 {% block content %}
 	
 	<!--404-area start-->
@@ -22,4 +23,5 @@
 		</div>
 	</div>
 	<!--404-area end-->
-{% endblock content %}
+  {% endblock content %}
+  {% endblock main %}
