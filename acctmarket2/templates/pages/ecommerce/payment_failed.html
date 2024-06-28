@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="payment-failed">
+    <h2>Payment Failed</h2>
+    <p>Unfortunately, your payment could not be processed. Please try again.</p>
+
+    <div class="cart-summary">
+        <h3>Cart Summary</h3>
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_data.values %}
+                <tr>
+                    <td>{{ item.title }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="cart-total">
+        <p><strong>Total Items:</strong> {{ totalcartitems }}</p>
+    </div>
+
+    <a href="{% url 'ecommerce:cart_list' %}" class="btn btn-primary">Return to Cart</a>
+</div>
+<br>
+{% endblock %}

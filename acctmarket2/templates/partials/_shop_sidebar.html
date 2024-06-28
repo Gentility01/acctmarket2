@@ -1,0 +1,114 @@
+{% load static %}
+
+<div class="col-xl-2 col-lg-3">
+  <div class="sidebar">
+    <div class="price_filter mt-40">
+      <div class="section-title">
+        <h3>Filter by price</h3>
+      </div>
+      <div class="price_slider_amount">
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <input type="text" id="max_price" min={{ min_max_price.price__min }} max={{ min_max_price.price__max }}  name="price" onkeyup="range.value=this.value" value="{{ min_max_price.price__min|floatformat:2 }}" placeholder="Add Your Price" />
+          </div>
+          <div class="col-lg-6">
+            <button id="price-filter-btn" type="button">Filter</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <input type="range" class="slider-range" name="range" id="range" min={{ min_max_price.price__min }} max={{ min_max_price.price__max }}  value="{{ min_max_price.price__min|floatformat:2 }}" oninput="max_price.value=this.value" />
+        from${{ min_max_price.price__min|floatformat:2 }} to ${{ min_max_price.price__max|floatformat:2 }}
+      </div>
+    </div>
+    <div class="list-filter mt-43">
+      <div class="section-title">
+        <h3>Categories</h3>
+      </div>
+      <ul class="list-none mt-25">
+        {% for cats in top_categories %}
+          <li>
+            <input type="checkbox"
+                   data-filter="category"
+                   class="filter-checkbox"
+                   name="checkbox"
+                   value="{{ cats.id }}" />
+            <label for="apple">{{ cats.title }}</label>
+          </li>
+        {% endfor %}
+        <li>
+          <a href="#">+ Show more</a>
+        </li>
+      </ul>
+    </div>
+
+    <!--latest-products-->
+    <div class="products-list mt-30">
+      <div class="section-title mb-30">
+        <h3>Latest Items</h3>
+      </div>
+      <div class="one-carousel dots-none">
+        <div>
+          <ul class="list-none">
+            {% for product in just_arrived|slice:":5" %}
+              <li>
+                <div class="product-single style-2">
+                  <div class="row align-items-center m-0">
+                    <div class="col-lg-4 p-0">
+                      <div class="product-thumb">
+                        <a href="#">
+                          <img src="{{ product.image.url }}" alt="" />
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-lg-8 p-0">
+                      <div class="product-title">
+                        <h4>
+                          <a href="{% url 'homeapp:product_detail' product.pk %}">{{ product.title }}</a>
+                        </h4>
+                      </div>
+                      <div class="product-price-rating">
+                        <span>${{ product.price }}</span>
+                        <del>${{ product.oldprice }}</del>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <ul class="list-none">
+            {% for product in just_arrived2|slice:":5" %}
+              <li>
+                <div class="product-single style-2">
+                  <div class="row align-items-center m-0">
+                    <div class="col-lg-4 p-0">
+                      <div class="product-thumb">
+                        <a href="#">
+                          <img src="{{ product.image.url }}" alt="" />
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-lg-8 p-0">
+                      <div class="product-title">
+                        <h4>
+                          <a href="#">{{ product.title }}</a>
+                        </h4>
+                      </div>
+                      <div class="product-price-rating">
+                        <span>${{ product.price }}</span>
+                        <del>${{ product.oldprice }}</del>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

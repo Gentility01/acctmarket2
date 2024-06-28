@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+{% include 'partials/_messages.html' %}
+<div class="invoice">
+  <h2 class="text-center">Payment Complete</h2>
+  <p class="text-center">Thank you for your purchase!</p>
+
+
+  <div class="invoice-details mb-4">
+    <p><strong>Name:</strong> {{ user.name }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+  </div>
+
+  <table class="table table-striped table-bordered invoice-table">
+    <thead class="thead-dark">
+      <tr>
+        <th>Item</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for  item in cart_data.values %}
+      <tr>
+        <td>{{ item.title }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>${{ item.price }}</td>
+        <td>$ {% widthratio item.price 1 item.quantity %} </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="invoice-total mt-4">
+    <p><strong>Total Amount:</strong> ${{ cart_total_amount }}</p>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="" class="btn btn-primary">Continue Shopping</a>
+  </div>
+</div>
+<br>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Function to multiply values in the template
+  function multiply(a, b) {
+    return (parseFloat(a) * parseFloat(b)).toFixed(2);
+  }
+  // Apply multiplication function to each total cell
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('td[data-quantity]').forEach(function(td) {
+      let quantity = td.getAttribute('data-quantity');
+      let price = td.getAttribute('data-price');
+      td.textContent = multiply(quantity, price);
+    });
+  });
+</script>
+{% endblock %}
