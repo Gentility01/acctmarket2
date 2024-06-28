@@ -19,6 +19,11 @@ urlpatterns = [
     path(
         "ecommerce/", include("acctmarket2.applications.ecommerce.urls", namespace="ecommerce")
     ),
+    # blog management
+    path("blog/", include("acctmarket2.applications.blog.urls", namespace="blog")),
+    # support management
+    path("support/", include("acctmarket2.applications.support.urls", namespace="support")),
+
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
 
