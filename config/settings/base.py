@@ -54,24 +54,8 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
-if not DEBUG:
-    DATABASES = {
-        "default":dj_database_url.parse(env("DATABASE_URL"))
-    }
-    DATABASES["default"]["ATOMIC_REQUESTS"] = True
-else:
-    DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'AcctmarketDb',
-        'USER': 'postgres',
-        'PASSWORD': 'gensanctity',
-        'HOST': 'localhost',  # e.g., 'localhost' or 'db.example.com'
-        'PORT': '',                # Default PostgreSQL port
-    }
-}
-    
-#     DATABASES["default"]["ATOMIC_REQUESTS"] = True
+
+# DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

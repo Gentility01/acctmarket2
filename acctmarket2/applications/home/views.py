@@ -235,3 +235,10 @@ class OrderDetails(LoginRequiredMixin, DetailView):
 
         context["products"] = products
         return context
+
+
+class ContactPage(DetailView):
+    template_name = "pages/contact_page.html"
+
+class TermsPolicy(TemplateView):
+    template_name = "pages/terms_and_conditions.html"

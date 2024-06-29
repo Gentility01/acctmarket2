@@ -2,7 +2,7 @@ from allauth.account.forms import SignupForm
 from allauth.socialaccount.forms import SignupForm as SocialSignupForm
 from django.contrib.auth import forms as admin_forms
 from django.core.exceptions import ValidationError
-from django.forms import CharField, EmailField
+from django.forms import CharField, EmailField, BooleanField
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
@@ -41,6 +41,7 @@ class CustomSignupBaseForm(SignupForm):
 
     name = CharField(max_length=255, label="Name", required=True)
     phone_no = CharField(max_length=20, label="Phone number", required=False)
+    # terms = BooleanField(required=True, label='I agree to the Terms and Conditions')
     country = CountryField(blank_label="(select country)").formfield(
         widget=CountrySelectWidget(),
     )
