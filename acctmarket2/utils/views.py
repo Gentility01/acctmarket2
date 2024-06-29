@@ -7,7 +7,7 @@ from acctmarket2.applications.users.models import (ContentManager,
 
 class ContentManagerRequiredMixin(LoginRequiredMixin):
     """
-    A mixin that only allows access to content managers.
+    A mixin that only allows access to content managers and superusers.
     """
 
     def dispatch(self, request, *args, **kwargs):
@@ -15,8 +15,8 @@ class ContentManagerRequiredMixin(LoginRequiredMixin):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
 
-        # Check if the user is a content manager
-        if not self.user_is_content_manager(request.user):
+        # Check if the user is a content manager or superuser
+        if not self.user_is_content_manager(request.user) and not request.user.is_superuser:
             return HttpResponseForbidden(
                 "You don't have permission to access this page.",
             )

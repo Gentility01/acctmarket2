@@ -67,7 +67,7 @@
               </form>
             </div>
             <a class="tf-button style-1 w208"
-               href="{% url 'supports:create_faq' %}"><i class="icon-plus"></i>Add new</a>
+               href="{% url 'support:create_faq' %}"><i class="icon-plus"></i>Add new</a>
           </div>
           <div class="wg-table table-all-faq">
             <ul class="table-title flex gap20 mb-14">
@@ -106,10 +106,10 @@
                       <div class="item eye">
                         <i class="icon-eye"></i>
                       </div>
-                      <a href="{% url 'ecommerce:edit_faq' cats.pk %}" class="item edit">
+                      <a href="{% url 'support:edit_faq' cats.pk %}" class="item edit">
                         <i class="icon-edit-3"></i>
                       </a>
-                      <a href="{% url 'ecommerce:delete_faq' cats.pk %}"
+                      <a href="{% url 'support:delete_faq' cats.pk %}"
                          class="item trash">
                         <i class="icon-trash-2"></i>
                       </a>

@@ -4,8 +4,9 @@ from cloudinary.models import CloudinaryField
 from django.db import models
 from django.db.models.query import QuerySet
 from model_utils import FieldTracker
-
+from io import BytesIO
 from acctmarket2.utils.media import MediaHelper
+from cloudinary import uploader
 
 
 class VisibleManager(auto_prefetch.Manager):
@@ -79,7 +80,10 @@ class ImageTitleTimeBaseModels(TitleTimeBasedModel):
     def save(self, *args, **kwargs):
         if self.image and not str(self.image).startswith("http"):
             if hasattr(self.image, 'file'):
+                # Ensure the file object has a name attribute
+                if isinstance(self.image.file, BytesIO) and not hasattr(self.image.file, 'name'):
+                    self.image.file.name = "temporary_image_name.jpg"
                 upload_path = MediaHelper.get_image_upload_path(self, self.image.file.name)
-                upload_result = cloudinary.uploader.upload(self.image.file, folder=upload_path)
+                upload_result = uploader.upload(self.image.file, folder=upload_path)
                 self.image = upload_result["public_id"]
         super(ImageTitleTimeBaseModels, self).save(*args, **kwargs)
