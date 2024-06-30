@@ -23,6 +23,12 @@
                   <div class="col-sm-12 mt-30">{{ form.country }}</div>
                   <div class="col-sm-12 mt-30">{{ form.password1 }}</div>
                   <div class="col-sm-12 mt-30">{{ form.password2 }}</div>
+                  <div class="form-check mr-2">
+                    {{ form.terms }}
+                  </div>
+                  <label class="form-check-label" for="terms">
+                    I agree to the <a href="{% url 'homeapp:termspolicy' %}">Terms and Conditions</a>
+                  </label>
                   <div class="col-sm-12 mt-40">
                     <button class="btn-common" type="submit">Sign up</button>
                   </div>

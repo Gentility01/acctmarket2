@@ -268,7 +268,7 @@
                   <div class="footer-menu">
                     <ul>
                       <li>
-                        <a href="#">Find a Store</a>
+                        <a href="#">Find shops</a>
                       </li>
                       <li>
                         <a href="#">About Us</a>
@@ -276,18 +276,18 @@
                       <li>
                         <a href="#">Contact Us</a>
                       </li>
-                      <li>
+                      {% comment %} <li>
                         <a href="#">Delivery information</a>
-                      </li>
-                      <li>
+                      </li> {% endcomment %}
+                      {% comment %} <li>
                         <a href="#">Privacy Policy</a>
-                      </li>
+                      </li> {% endcomment %}
                       <li>
-                        <a href="#">Terms & Conditions</a>
+                        <a href="{% url 'homeapp:termspolicy' %}">Terms & Conditions</a>
                       </li>
-                      <li>
+                      {% comment %} <li>
                         <a href="#">Gift Cards</a>
-                      </li>
+                      </li> {% endcomment %}
                     </ul>
                   </div>
                 </div>
