@@ -1,29 +1,39 @@
 from django.contrib import admin
 
 from acctmarket2.applications.ecommerce.models import (Address, CartOrder,
-                                                CartOrderItems, Category,
-                                                Payment, Product,
-                                                ProductImages, ProductReview,
-                                                Tags, WishList)
+                                                       CartOrderItems,
+                                                       Category, Payment,
+                                                       Product, ProductImages,
+                                                       ProductKey,
+                                                       ProductReview, WishList)
 
 
 class ProductImagesAdmin(admin.TabularInline):
     model = ProductImages
 
 
-@admin.register(Tags)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ["id"]
+
+
+
+@admin.register(ProductKey)     # noqa
+class ProductKeyAdmin(admin.ModelAdmin):
+    list_display = [
+        "product",
+        "key",
+        "password",
+        "is_used",
+    ]
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [ProductImagesAdmin]
+    # inlines = [ProductImagesAdmin]
     list_display = [
         "user",
         "title",
         "price",
         "image",
+        "visible",
         "in_stock",
         "digital",
         "best_seller",
@@ -33,7 +43,6 @@ class ProductAdmin(admin.ModelAdmin):
         "deal_of_the_week",
         "deal_start_date",
         "deal_end_date",
-
     ]
 
 

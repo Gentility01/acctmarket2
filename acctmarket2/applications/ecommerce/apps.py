@@ -4,3 +4,6 @@ from django.apps import AppConfig
 class EcommerceConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "acctmarket2.applications.ecommerce"
+
+    def ready(self):
+        pass

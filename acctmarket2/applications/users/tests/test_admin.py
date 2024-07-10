@@ -50,7 +50,7 @@ class TestUserAdmin:
         # Reload the admin module to apply the setting change
         import acctmarket2.applications.users.admin as users_admin
 
-        with contextlib.suppress(admin.sites.AlreadyRegistered):  # type: ignore[attr-defined]
+        with contextlib.suppress(admin.sites.AlreadyRegistered):  # type: ignore[attr-defined]   # noqa
             reload(users_admin)
 
     @pytest.mark.django_db()

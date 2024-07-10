@@ -11,9 +11,9 @@ from .models import (Account, Accountant, Administrator, AffiliatePartner,
                      LiveChatSupport, MarketingAndSales, User)
 
 if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
-    # Force the `admin` sign in process to go through the `django-allauth` workflow:
+    # Force the `admin` sign in process to go through the `django-allauth` workflow:                   # noqa
     # https://docs.allauth.org/en/latest/common/admin.html#admin
-    admin.site.login = login_required(admin.site.login)  # type: ignore[method-assign]
+    admin.site.login = login_required(admin.site.login)  # type: ignore[method-assign]                   # noqa
 
 
 @admin.register(User)
@@ -37,7 +37,8 @@ class UserAdmin(BaseUserAdmin):
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    list_display = ["email", "name", "is_superuser", "pk", "phone_no", "country"]
+    list_display = ["email", "name", "is_superuser",
+                    "pk", "phone_no", "country"]
     search_fields = ["name", "phone_no", "country"]
     ordering = ["id"]
     add_fieldsets = (
@@ -45,7 +46,8 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "password1", "password2", "phone_no", "country"),
+                "fields": ("email", "password1",
+                "password2", "phone_no", "country"),                   # noqa
             },
         ),
     )

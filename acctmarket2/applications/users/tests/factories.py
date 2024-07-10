@@ -1,8 +1,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-from factory import Faker
-from factory import post_generation
+from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
 
 from acctmarket2.applications.users.models import User
@@ -13,7 +12,7 @@ class UserFactory(DjangoModelFactory):
     name = Faker("name")
 
     @post_generation
-    def password(self, create: bool, extracted: Sequence[Any], **kwargs):  # noqa: FBT001
+    def password(self, create: bool, extracted: Sequence[Any], **kwargs):  # noqa
         password = (
             extracted
             if extracted

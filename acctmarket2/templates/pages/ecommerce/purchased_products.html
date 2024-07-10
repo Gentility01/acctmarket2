@@ -1,35 +1,61 @@
-<!-- purchased_products.html -->
 {% extends "base.html" %}
 
 {% block title %}Purchased Products{% endblock %}
-
 {% block content %}
-
-{% if purchased_products %}
-<h1 class="my-4">Purchased Products</h1>
-    <div class="row">
-
-        {% for product in purchased_products %}
-            <div class="col-md-4 mb-4">
-                <div class="card" style="width: 18rem;">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.title }}">
+  <div class="container mt-5">
+    <h1 class="my-4">Purchased Products</h1>
+    {% if order_items %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead class="thead-dark">
+            <tr>
+              <th>Transaction ID</th>
+              <th>Product Image</th>
+              <th>Product Title</th>
+              <th>Keys & Passwords</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order_item in order_items %}
+              <tr>
+                <td>{{ order_item.transaction_id }}</td>
+                <td>
+                  {% if order_item.product.image %}
+                    <img src="{{ order_item.product.image.url }}"
+                         alt="{{ order_item.product.title }}"
+                         class="img-thumbnail"
+                         style="width: 100px" />
+                  {% else %}
+                    <img src="https://via.placeholder.com/150"
+                         alt="Placeholder image"
+                         class="img-thumbnail"
+                         style="width: 100px" />
+                  {% endif %}
+                </td>
+                <td>{{ order_item.product.title }}</td>
+                <td>
+                  <ul class="list-unstyled">
+                    {% if order_item.keys_and_passwords %}
+                      {% for entry in order_item.keys_and_passwords %}
+                        <li>
+                          <strong>Key:</strong> {{ entry.key|escape }}
+                        </li>
+                        <li>
+                          <strong>Password:</strong> {{ entry.password|escape }}
+                        </li>
+                      {% endfor %}
                     {% else %}
-                        <img src="https://via.placeholder.com/150"  class="card-img-top" alt="Placeholder image">
+                      <li>No keys and passwords assigned</li>
                     {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ product.title }}</h5>
-                        <p class="card-text">{{ product.description|safe|truncatewords:20 }}</p>
-                        <p><strong>Unique Keys:</strong> {{ product.unique_keys }}</p>
-                        {% if product.resource %}
-                            <a href="{{ product.resource.url }}" class="btn btn-primary">Download Resource</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <p class="alert alert-warning">You have not purchased any products yet.</p>
-{% endif %}
+                  </ul>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-warning" role="alert">You have not purchased any products yet.</div>
+    {% endif %}
+  </div>
 {% endblock %}

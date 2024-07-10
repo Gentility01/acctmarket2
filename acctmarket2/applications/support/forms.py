@@ -1,7 +1,7 @@
 from django.forms import ModelForm, Textarea, TextInput
 
-from acctmarket2.applications.support.models import (FrequestAskQuestion, Response,
-                                               Ticket)
+from acctmarket2.applications.support.models import (FrequestAskQuestion,
+                                                     Response, Ticket)
 
 
 class FAQForm(ModelForm):

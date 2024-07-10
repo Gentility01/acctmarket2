@@ -9,21 +9,25 @@ from django.views.generic import DetailView, ListView, TemplateView, View
 
 from acctmarket2.applications.blog.models import Announcement
 from acctmarket2.applications.ecommerce.forms import ProductReviewForm
-from acctmarket2.applications.ecommerce.models import (CartOrder, CartOrderItems,
-                                                Category, Product,
-                                                ProductImages, ProductReview)
+from acctmarket2.applications.ecommerce.models import (CartOrder,
+                                                       CartOrderItems,
+                                                       Category, Product,
+                                                       ProductImages,
+                                                       ProductReview)
 
 # Create your views here.
 
 
-class HomeView(TemplateView):
+class HomeView(ListView):
     template_name = "pages/home.html"
+    model = Announcement
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["announcements"] = Announcement.objects.filter(active=True).order_by(
+        announcements = Announcement.objects.filter(active=True).order_by(
             "-created_at",
         )
+        context["announcements"] = announcements
         return context
 
 
@@ -35,11 +39,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.administrator_profile.exists():
-            # If the user is not an administrator, redirect them to another page
+            # If the user is not an administrator,
+            # redirect them to another page
             return redirect(
                 reverse_lazy("not_administrator"),
             )
-        # Assuming "not_administrator" is the name of the URL pattern for the page
+        # Assuming "not_administrator"
+        # is the name of the URL pattern for the page
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -51,7 +57,7 @@ class ProductShopListView(ListView):
 
     def get_queryset(self):
         # Add ordering to the queryset
-        return Product.objects.order_by("id")
+        return Product.objects.filter(visible=True).order_by("id")
 
     def get_context_data(self, **kwargs):
         """Add pagination context data."""
@@ -83,7 +89,7 @@ class ProductShopDetailView(DetailView):
             id=product.id,
         )
         # reviews for the products
-        product_reviews = ProductReview.objects.filter(product=product).order_by(
+        product_reviews = ProductReview.objects.filter(product=product).order_by(   # noqa
             "-created_at",
         )
 
@@ -145,7 +151,7 @@ class ProductTagsList(ListView):
     def get_queryset(self):
         # get the category base on the slug in the url
         tag_slug = self.kwargs["tag_slug"]
-        return Product.objects.filter(tags__slug=tag_slug).order_by("created_at")
+        return Product.objects.filter(tags__slug=tag_slug).order_by("created_at")                      # noqa
 
     # Add filter functionality
     def post(self, request, *args, **kwargs):
@@ -239,6 +245,7 @@ class OrderDetails(LoginRequiredMixin, DetailView):
 
 class ContactPage(DetailView):
     template_name = "pages/contact_page.html"
+
 
 class TermsPolicy(TemplateView):
     template_name = "pages/terms_and_conditions.html"

@@ -17,7 +17,9 @@ class BlogCategoryForm(ModelForm):
             "title": TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter  title"},
             ),
-            "image": FileInput(attrs={"class": "form-control", "name": "filename"}),
+            "image": FileInput(
+                attrs={"class": "form-control", "name": "filename"}
+            ),
             "sub_category": Select(attrs={"class": "form-control"}),
         }
 
@@ -35,11 +37,18 @@ class PostForm(ModelForm):
 
         widgets = {
             "title": TextInput(
-                attrs={"class": "form-control", "placeholder": "Enter post title"},
+                attrs={
+                    "class": "form-control", "placeholder": "Enter post title"
+                },
             ),
-            "image": FileInput(attrs={"class": "form-control", "name": "filename"}),
+            "image": FileInput(attrs={
+                "class": "form-control", "name": "filename"
+            }),
             "content": CKEditorWidget(
-                attrs={"class": "form-control", "placeholder": "Enter post content"},
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter post content"
+                },
             ),
             "category": Select(attrs={"class": "form-control"}),
             "tags": TextInput(
@@ -65,7 +74,9 @@ class BannerForm(ModelForm):
 
         widgets = {
             "title": TextInput(
-                attrs={"class": "form-control", "placeholder": "Enter short title"},
+                attrs={
+                    "class": "form-control", "placeholder": "Enter short title"
+                },
             ),
             "sub_title": TextInput(
                 attrs={
@@ -74,9 +85,14 @@ class BannerForm(ModelForm):
                 },
             ),
             "category": Select(attrs={"class": "form-control"}),
-            "image": FileInput(attrs={"class": "form-control", "name": "filename"}),
+            "image": FileInput(attrs={
+                "class": "form-control", "name": "filename"
+            }),
             "price": NumberInput(
-                attrs={"class": "form-control", "placeholder": "Enter product price"},
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter product price"  # noqa
+                },
             ),
             "oldprice": NumberInput(
                 attrs={

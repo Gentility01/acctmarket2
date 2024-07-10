@@ -1,13 +1,14 @@
 from django.urls import path
 
 from acctmarket2.applications.users.views import (accountant_account,
-                                           administrator_account,
-                                           content_manager_account,
-                                           customer_support_reps,
-                                           customers_account, dashboard_view,
-                                           user_detail_view,
-                                           user_redirect_view,
-                                           user_update_view)
+                                                  administrator_account,
+                                                  content_manager_account,
+                                                  customer_support_reps,
+                                                  customers_account,
+                                                  dashboard_view,
+                                                  user_detail_view,
+                                                  user_redirect_view,
+                                                  user_update_view)
 
 app_name = "users"
 urlpatterns = [
@@ -22,7 +23,9 @@ urlpatterns = [
         view=content_manager_account,
         name="content_manager_account",
     ),
-    path("signup/accountant", view=accountant_account, name="accountant_account"),
+    path(
+        "signup/accountant", view=accountant_account,
+        name="accountant_account"),
     path(
         "signup/customer-support",
         view=customer_support_reps,

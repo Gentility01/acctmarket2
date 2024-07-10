@@ -37,9 +37,7 @@
         <div class="wg-box">
           <div class="title-box">
             <i class="icon-coffee"></i>
-
           </div>
-
           <div class="wg-table table-supports-list">
             <ul class="table-title flex gap20 mb-14">
               <li>
@@ -49,12 +47,11 @@
                 <div class="body-title">Status</div>
               </li>
               <li>
-                <div class="body-title">Assigned </div>
+                <div class="body-title">Assigned</div>
               </li>
               <li>
-                <div class="body-title">Created </div>
+                <div class="body-title">Created</div>
               </li>
-
               <li>
                 <div class="body-title">Action</div>
               </li>
@@ -68,20 +65,15 @@
                     </div>
                     <div class="body-text">{{ ticket.get_status_display }}</div>
                     <div class="body-text">{{ ticket.assigned_to }}</div>
-                    <div class="body-text">{{ ticket.created_at|date:"M - Y"}}</div>
-
-
-
+                    <div class="body-text">{{ ticket.created_at|date:"M - Y" }}</div>
                     <div class="list-icon-function">
                       <a href="{% url 'support:ticket_detail' ticket.pk %}" class="item eye">
                         <i class="icon-eye"></i>
                       </a>
-                      {% comment %} <a href=""
-                         class="item edit">
+                      {% comment %} <a href="" class="item edit">
                         <i class="icon-edit-3"></i>
                       </a> {% endcomment %}
-                      {% comment %} <a href=""
-                         class="item trash">
+                      {% comment %} <a href="" class="item trash">
                         <i class="icon-trash-2"></i>
                       </a> {% endcomment %}
                     </div>
@@ -90,7 +82,6 @@
               {% endfor %}
             </ul>
           </div>
-
         </div>
         <!-- /supports-list -->
       </div>

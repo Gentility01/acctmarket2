@@ -4,9 +4,18 @@ from acctmarket2.applications.ecommerce import views
 
 app_name = "ecommerce"
 urlpatterns = [
-    path("add-product", views.AddProductView.as_view(), name="add_product"),
-    path("add-category", views.AddCategoryView.as_view(), name="add_category"),
-    path("list-category", views.ListCategoryView.as_view(), name="list_category"),
+    path(
+        "add-product", views.AddProductView.as_view(),
+        name="add_product"
+    ),
+    path(
+        "add-category", views.AddCategoryView.as_view(),
+        name="add_category"
+    ),
+    path(
+        "list-category", views.ListCategoryView.as_view(),
+        name="list_category"
+    ),
     path(
         "edit-category/<int:pk>/",
         views.EditCategoryView.as_view(),
@@ -17,7 +26,10 @@ urlpatterns = [
         views.DeleteCategoryView.as_view(),
         name="delete_category",
     ),
-    path("list-product", views.ListProductView.as_view(), name="list_product"),
+    path(
+        "list-product", views.ListProductView.as_view(),
+        name="list_product"
+    ),
     path(
         "edit-product/<int:pk>/",
         views.EditProductView.as_view(),
@@ -32,14 +44,6 @@ urlpatterns = [
         "product-detail/<int:pk>/",
         views.ProductDetailView.as_view(),
         name="product_detail",
-    ),
-    path("add-tags", views.CreateProductTags.as_view(), name="add_tags"),
-    path("list-tags", views.ListProductTags.as_view(), name="list_tags"),
-    path("edit-tags/<int:pk>/", views.EditProductTags.as_view(), name="edit_tags"),
-    path(
-        "delete-tags/<int:pk>/",
-        views.DeleteProductTags.as_view(),
-        name="delete_tags",
     ),
     path(
         "create-product-image",
@@ -66,7 +70,10 @@ urlpatterns = [
         views.AddReviewsView.as_view(),
         name="add_review",
     ),
-    path("add-to-cart/", views.AddToCartView.as_view(), name="add_to_cart"),
+    path(
+        "add-to-cart/", views.AddToCartView.as_view(),
+        name="add_to_cart"
+    ),
     path("cart", views.CartListView.as_view(), name="cart_list"),
     path(
         "delete-from-cart",
@@ -78,8 +85,14 @@ urlpatterns = [
         views.UpdateCartView.as_view(),
         name="delete_from_cart_list",
     ),
-    path("checkout", views.CheckoutView.as_view(), name="checkout"),
-    path("proceed-payment", views.ProceedPayment.as_view(), name="proceed_payment"),
+    path(
+        "checkout", views.CheckoutView.as_view(),
+        name="checkout"
+    ),
+    path(
+        "proceed-payment", views.ProceedPayment.as_view(),
+        name="proceed_payment"
+    ),
     path(
         "payment-complete",
         views.PaymentCompleteView.as_view(),
@@ -115,15 +128,10 @@ urlpatterns = [
         views.PurchasedProductsView.as_view(),
         name="purchased_products",
     ),
-    # path(
-    #     "create-payment/<int:order_id>/",
-    #       views.CreateNowPaymentViews.as_view(),
-    #         name="create_nowpayment"
-    # ),
-    # path(
-    #     "payment-callback/",
-    #     views.PaymentCallbackView.as_view(), name="payment-callback"
-    # ),
-    path('create_nowpayment/<int:order_id>/', views.NowPaymentView.as_view(), name='create_nowpayment'),
-    path('ipn/', views.ipn, name='ipn'),
+    path(
+        "create_nowpayment/<int:order_id>/",
+        views.NowPaymentView.as_view(),
+        name="create_nowpayment",
+    ),
+    path("ipn/", views.IPNView.as_view(), name="ipn"),
 ]

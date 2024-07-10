@@ -3,37 +3,45 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.urls import include
-from django.urls import path
+from django.urls import include, path
 from django.views import defaults as default_views
-from django.views.generic import TemplateView
 
 urlpatterns = [
-
     # Django Admin, use {% url 'admin:index' %}
-    path("", include("acctmarket2.applications.home.urls", namespace="homeapp")),
+    path("", include(
+        "acctmarket2.applications.home.urls", namespace="homeapp")
+    ),
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
-    path("users/", include("acctmarket2.applications.users.urls", namespace="users")),
+    path("users/", include(
+        "acctmarket2.applications.users.urls", namespace="users")
+    ),
     #  ecomercce manaement
     path(
-        "ecommerce/", include("acctmarket2.applications.ecommerce.urls", namespace="ecommerce")
+        "ecommerce/",
+        include(
+            "acctmarket2.applications.ecommerce.urls", namespace="ecommerce"
+        ),
     ),
     # blog management
-    path("blog/", include("acctmarket2.applications.blog.urls", namespace="blog")),
+    path("blog/", include(
+        "acctmarket2.applications.blog.urls", namespace="blog")
+    ),
     # support management
-    path("support/", include("acctmarket2.applications.support.urls", namespace="support")),
-
+    path(
+        "support/",
+        include("acctmarket2.applications.support.urls", namespace="support"),
+    ),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
-
     path("ckeditor/", include("ckeditor_uploader.urls")),
     # ...
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
 if settings.DEBUG:
-    # Static file serving when using Gunicorn + Uvicorn for local web socket development
+    # Static file serving when using Gunicorn + Uvicorn for local web socket
+    # development
     urlpatterns += staticfiles_urlpatterns()
 
 
@@ -61,4 +69,4 @@ if settings.DEBUG:
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns  # noqa

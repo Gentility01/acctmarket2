@@ -6,7 +6,8 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from taggit.managers import TaggableManager
 
-from acctmarket2.utils.models import ImageTitleTimeBaseModels, TitleTimeBasedModel
+from acctmarket2.utils.models import (ImageTitleTimeBaseModels,
+                                      TitleTimeBasedModel)
 
 # Create your models here.
 
@@ -45,7 +46,9 @@ class Post(ImageTitleTimeBaseModels):
         null=True,
     )
 
-    tags = TaggableManager(blank=True, help_text="A comma-separated list of tags.")
+    tags = TaggableManager(
+        blank=True, help_text="A comma-separated list of tags."
+    )
     content = RichTextUploadingField("Description", default="", null=True)
 
     class Meta:

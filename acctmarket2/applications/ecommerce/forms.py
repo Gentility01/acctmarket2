@@ -1,12 +1,13 @@
 from ckeditor.widgets import CKEditorWidget
-from django.forms import (CharField, CheckboxInput, ChoiceField, FileInput,
-                          ModelForm, NumberInput, Select, Textarea, TextInput)
+from django.forms import (CharField, ChoiceField, FileInput, ModelForm, Select,
+                          Textarea, TextInput, inlineformset_factory)
 from multiupload.fields import MultiFileField
 from taggit.forms import TagField
 
 from acctmarket2.applications.ecommerce.models import (Category, Product,
-                                                ProductImages, ProductReview,
-                                                Tags)
+                                                       ProductImages,
+                                                       ProductKey,
+                                                       ProductReview)
 from acctmarket2.utils.choices import Rating
 
 
@@ -14,9 +15,13 @@ class ProductForm(ModelForm):
     description = CharField(
         label="Description",
         widget=CKEditorWidget(
-            attrs={"class": "form-control", "placeholder": "Enter product description"},
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter product description"
+            },
         ),
     )
+
     tags = TagField(required=False)
 
     class Meta:
@@ -27,7 +32,6 @@ class ProductForm(ModelForm):
             "description",
             "price",
             "oldprice",
-            "spacification",
             "tags",
             "product_status",
             "category",
@@ -38,73 +42,29 @@ class ProductForm(ModelForm):
             "special_offer",
             "just_arrived",
             "resource",
-            "unique_keys",
+            "quantity_in_stock",
+            "specification",
         ]
-        widgets = {
-            "title": TextInput(
-                attrs={"class": "form-control", "placeholder": "Enter product name"},
-            ),
-            "image": FileInput(
-                attrs={"class": "form-control", "id": "myFile", "name": "filename"},
-            ),
-            "description": CKEditorWidget(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Enter product description",
-                },
-            ),
-            "price": NumberInput(
-                attrs={"class": "form-control", "placeholder": "Enter product price"},
-            ),
-            "oldprice": NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Enter product old price",
-                },
-            ),
-            "spacification": CKEditorWidget(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Enter product specification",
-                },
-            ),
-            "tags": TextInput(attrs={"class": "form-control"}),
-            "product_status": Select(
-                attrs={"class": "form-control", "placeholder": "Enter product status"},
-            ),
-            "category": Select(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Enter product category",
-                },
-            ),
-            "in_stock": CheckboxInput(attrs={"class": "form-check-input"}),
-            "featured": CheckboxInput(attrs={"class": "form-check-input"}),
-            "digital": CheckboxInput(attrs={"class": "form-check-input"}),
-            "best_seller": CheckboxInput(attrs={"class": "form-check-input"}),
-            "special_offer": CheckboxInput(attrs={"class": "form-check-input"}),
-            "just_arrived": CheckboxInput(attrs={"class": "form-check-input"}),
-            "resource": FileInput(
-                attrs={
-                    "class": "form-control",
-                    "id": "resourceFile",
-                    "name": "resource",
-                },
-            ),
-            "unique_keys": Textarea(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Enter unique keys as JSON",
-                    "rows": 3,
-                },
-            ),
-        }
+
+
+class ProductKeyForm(ModelForm):
+    class Meta:
+        model = ProductKey
+        fields = ["key", "password", "is_used"]
+
+
+ProductKeyFormSet = inlineformset_factory(
+    Product, ProductKey, form=ProductKeyForm, extra=1
+)
 
 
 class ProductImagesForm(ModelForm):
     """Form to get all product images"""
 
-    image = MultiFileField(min_num=1, max_num=10, max_file_size=1024 * 1024 * 5)
+    image = MultiFileField(
+        min_num=1, max_num=10,
+        max_file_size=1024 * 1024 * 5
+    )
 
     class Meta:
         model = ProductImages
@@ -126,25 +86,20 @@ class CategoryForm(ModelForm):
         fields = ["title", "image", "sub_category"]
         widgets = {
             "title": TextInput(
-                attrs={"class": "flex-grow", "placeholder": "Enter category name"},
+                attrs={
+                    "class": "flex-grow",
+                    "placeholder": "Enter category name"
+                },
             ),
-            "image": FileInput(attrs={"class": "form-control", "name": "filename"}),
+            "image": FileInput(attrs={
+                "class": "form-control", "name": "filename"
+            }),
             "sub_category": Select(attrs={"class": "form-control"}),
         }
 
 
-class TagsForm(ModelForm):
-    class Meta:
-        model = Tags
-        fields = ["title"]
-        widgets = {
-            "title": TextInput(
-                attrs={"class": "flex-grow", "placeholder": "Enter tag name"},
-            ),
-        }
 
-
-class ProductReviewForm(ModelForm):
+class ProductReviewForm(ModelForm):    # noqa
     review = CharField(
         widget=Textarea(attrs={"placeholder": "Write your  review"}),
     )
@@ -160,4 +115,4 @@ class ProductReviewForm(ModelForm):
 
 # class NowPaymentForm(ModelForm):
 #     pay_currency = ChoiceField(choices=[])
-#     order = 
+#     order =

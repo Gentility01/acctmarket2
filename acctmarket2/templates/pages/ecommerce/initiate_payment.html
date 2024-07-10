@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Initiate Payment</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Initiate Payment</h1>
     <p>Amount: {{ payment.amount }}</p>
     <p>Reference: {{ payment.reference }}</p>
-
     <form id="paystack-form">
-        <script src="https://js.paystack.co/v1/inline.js"></script>
-        <button type="button" onclick="payWithPaystack()">Pay</button>
+      <script src="https://js.paystack.co/v1/inline.js"></script>
+      <button type="button" onclick="payWithPaystack()">Pay</button>
     </form>
-
     <script>
-        function payWithPaystack() {
-            var handler = PaystackPop.setup({
-                key: '{{ paystack_public_key }}',
-                email: '{{ request.user.email }}',
-                amount: {{ payment.amount }},
-                ref: '{{ payment.reference }}',
-                callback: function(response){
-                    window.location.href = '{% url "ecommerce:verify_payment" payment.reference %}';
-                },
-                onClose: function(){
-                    alert('Window closed.');
-                }
-            });
-            handler.openIframe();
-        }
+      function payWithPaystack() {
+        var handler = PaystackPop.setup({
+          key: '{{ paystack_public_key }}',
+          email: '{{ request.user.email }}',
+          amount: {
+            {
+              payment.amount
+            }
+          },
+          ref: '{{ payment.reference }}',
+          callback: function(response) {
+            window.location.href = '{% url "ecommerce:verify_payment" payment.reference %}';
+          },
+          onClose: function() {
+            alert('Window closed.');
+          }
+        });
+        handler.openIframe();
+      }
     </script>
-</body>
+  </body>
 </html>

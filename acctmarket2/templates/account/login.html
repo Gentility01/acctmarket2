@@ -9,9 +9,7 @@
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-6">
-            <h2 class="text-center">
-              Sign in
-            </h2>
+            <h2 class="text-center">Sign in</h2>
             <div class="contact-form mt-sm-30">
               <p class="text-center">
                 Don't have an account? <a href="{% url 'account_signup' %}">Sign up</a>
@@ -21,9 +19,7 @@
                 {% if form.non_field_errors %}
                   <div class="alert alert-danger" role="alert">
                     <ul class="mb-0">
-                      {% for error in form.non_field_errors %}
-                        <b>{{ error }}</b>
-                      {% endfor %}
+                      {% for error in form.non_field_errors %}<b>{{ error }}</b>{% endfor %}
                     </ul>
                   </div>
                 {% endif %}
@@ -33,11 +29,13 @@
                       {% if field.errors %}
                         <div class="text-danger">
                           {% for error in field.errors %}
-                            <small>{{ error }}</small><br>
+                            <small>{{ error }}</small>
+                            <br />
                           {% endfor %}
                         </div>
                       {% endif %}
-                      {% if field.name != 'remember' %}  {# Exclude 'remember' field #}
+                      {% if field.name != 'remember' %}
+                        {# Exclude 'remember' field #}
                         {{ field.label_tag }} {{ field }}
                       {% endif %}
                     </div>

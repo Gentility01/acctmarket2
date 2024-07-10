@@ -2,7 +2,7 @@ from allauth.account.forms import SignupForm
 from allauth.socialaccount.forms import SignupForm as SocialSignupForm
 from django.contrib.auth import forms as admin_forms
 from django.core.exceptions import ValidationError
-from django.forms import CharField, EmailField, BooleanField
+from django.forms import BooleanField, CharField, EmailField
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
@@ -41,7 +41,8 @@ class CustomSignupBaseForm(SignupForm):
 
     name = CharField(max_length=255, label="Name", required=True)
     phone_no = CharField(max_length=20, label="Phone number", required=False)
-    terms = BooleanField(required=True, label='I agree to the Terms and Conditions')
+    terms = BooleanField(required=True,
+                         label="I agree to the Terms and Conditions")
     country = CountryField(blank_label="(select country)").formfield(
         widget=CountrySelectWidget(),
     )
@@ -56,7 +57,8 @@ class CustomSignupBaseForm(SignupForm):
             {"class": "form-control", "placeholder": "Enter your email"},
         )
         self.fields["phone_no"].widget.attrs.update(
-            {"class": "form-control", "placeholder": "Enter your phone number"},
+            {"class": "form-control",
+             "placeholder": "Enter your phone number"},
         )
         self.fields["country"].widget.attrs.update(
             {"class": "form-control"},
@@ -127,7 +129,7 @@ class CustomSignupForm(CustomSignupBaseForm):
         if profile_class:
             profile_instance = profile_class(user=user)
             if "expertise_area" in profile_data:
-                profile_instance.expertise_area = profile_data["expertise_area"]
+                profile_instance.expertise_area = profile_data["expertise_area"]                   # noqa
             if "financial_software_used" in profile_data:
                 profile_instance.financial_software_used = profile_data[
                     "financial_software_used"

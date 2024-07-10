@@ -16,14 +16,15 @@
         <div class="mini-cart text-right">
           <ul>
             <li>
-              <a href="{% url 'ecommerce:wishlists' %}"><i class="icon_heart_alt"></i><span>{{ wishlist.count}}</span></a>
+              <a href="{% url 'ecommerce:wishlists' %}"><i class="icon_heart_alt"></i><span>{{ wishlist.count }}</span></a>
             </li>
             <li class="minicart-icon">
               <a href="#"><i class="icon_bag_alt"></i><span class="cart-item-count">{{ request.session.cart_data_obj|length }}</span></a>
               <div class="cart-dropdown">
                 <div class="mini-cart-checkout">
                   <a href="{% url 'ecommerce:cart_list' %}" class="btn-common view-cart">VIEW CART</a>
-                  <a href="{% url 'ecommerce:checkout' %}" class="btn-common checkout mt-10">CHECK OUT</a>
+                  <a href="{% url 'ecommerce:checkout' %}"
+                     class="btn-common checkout mt-10">CHECK OUT</a>
                 </div>
               </div>
             </li>

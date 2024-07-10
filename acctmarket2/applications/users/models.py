@@ -24,7 +24,8 @@ class User(UIDTimeBasedModel, AbstractUser):
     last_name = None  # type: ignore[assignment]
     email: str = EmailField(_("email address"), unique=True)
     username = None  # type: ignore[assignment]
-    phone_no: str = CharField(_("Phone number"), max_length=20, default="", blank=True)
+    phone_no: str = CharField(_(
+        "Phone number"), max_length=20, default="", blank=True)
     country: str = CountryField(_("Country"), blank=True)
 
     USERNAME_FIELD = "email"
@@ -145,7 +146,7 @@ class ContentManager(BaseProfile):
     def save(self, *args, **kwargs):
         if not self.expertise_area:
             self.expertise_area = (
-                "General"  # Set default value if expertise_area is not provided
+                "General"
             )
         super().save(*args, **kwargs)
 
@@ -166,7 +167,7 @@ class MarketingAndSales(BaseProfile):
     def save(self, *args, **kwargs):
         if not self.marketing_strategy:
             self.marketing_strategy = (
-                "Perfect"  # Set default value if expertise_area is not provided
+                "Perfect"  # Set default value if expertise_area is not provided                   # noqa
             )
         super().save(*args, **kwargs)
 

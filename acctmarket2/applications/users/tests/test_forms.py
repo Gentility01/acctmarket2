@@ -13,7 +13,7 @@ class TestUserAdminCreationForm:
 
     def test_username_validation_error_msg(self, user: User):
         """
-        Tests UserAdminCreation Form's unique validator functions correctly by testing:
+        Tests UserAdminCreation Form's unique validator functions correctly by testing:                      # noqa
             1) A new user with an existing username cannot be added.
             2) Only 1 error is raised by the UserCreation Form
             3) The desired error message is raised
@@ -32,4 +32,4 @@ class TestUserAdminCreationForm:
         assert not form.is_valid()
         assert len(form.errors) == 1
         assert "email" in form.errors
-        assert form.errors["email"][0] == _("This email has already been taken.")
+        assert form.errors["email"][0] == _("This email has already been taken.")                    # noqa

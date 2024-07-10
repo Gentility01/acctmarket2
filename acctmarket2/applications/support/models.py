@@ -24,7 +24,9 @@ class Ticket(TitleTimeBasedModel):
         related_name="tickets",
     )
     description = TextField()
-    status = CharField(max_length=20, choices=Ticket.choices, default=Ticket.OPEN)
+    status = CharField(
+        max_length=20, choices=Ticket.choices,
+        default=Ticket.OPEN)
 
     class Meta:
         verbose_name = "Ticket"

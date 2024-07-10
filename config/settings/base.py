@@ -3,15 +3,11 @@
 
 from pathlib import Path
 
-import environ
-import dj_database_url
-import os
-
 import cloudinary
 import cloudinary.api
 import cloudinary.uploader
-
-
+import dj_database_url
+import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # acctmarket2/
@@ -38,9 +34,9 @@ LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
 # from django.utils.translation import gettext_lazy as _
 # LANGUAGES = [
-#     ('en', _('English')),
-#     ('fr-fr', _('French')),
-#     ('pt-br', _('Portuguese')),
+#     ("en", _("English")),
+#     ("fr-fr", _("French")),
+#     ("pt-br", _("Portuguese")),
 # ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
@@ -56,24 +52,23 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 if not DEBUG:
     DATABASES = {
-        "default":dj_database_url.parse(env("DATABASE_URL"))
+        "default": dj_database_url.parse(env("DATABASE_URL")),
     }
     DATABASES["default"]["ATOMIC_REQUESTS"] = True
 else:
     DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'AcctmarketDb',
-        'USER': 'postgres',
-        'PASSWORD': env("POSTGRES_PASSWORD"),
-        'HOST': env("POSTGRES_HOST"),  # e.g., 'localhost' or 'db.example.com'
-        'PORT': '',                # Default PostgreSQL port
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "Acctmarkets",
+            "USER": "django_group",
+            "PASSWORD": env("POSTGRES_PASSWORD"),
+            "HOST": env("POSTGRES_HOST"),  # e.g., "localhost" or "db.example.com"    # noqa
+            "PORT": "",  # Default PostgreSQL port
+        },
     }
-    
-}
-    
+
 #     DATABASES["default"]["ATOMIC_REQUESTS"] = True
-# # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
+# # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD   # noqa
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # URLS
@@ -109,8 +104,6 @@ THIRD_PARTY_APPS = [
     "django_countries",
     "taggit",
     "cloudinary",
-    
-
 ]
 
 LOCAL_APPS = [
@@ -156,11 +149,11 @@ PASSWORD_HASHERS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",      # noqa
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},                   # noqa
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},                   # noqa
 ]
 
 # MIDDLEWARE
@@ -214,8 +207,8 @@ TEMPLATES = [
         "OPTIONS": {
             # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
             "context_processors": [
-                "acctmarket2.applications.ecommerce.context_processors.product_list",
-                "acctmarket2.applications.ecommerce.context_processors.products_by_category",
+                "acctmarket2.applications.ecommerce.context_processors.product_list",                     # noqa
+                "acctmarket2.applications.ecommerce.context_processors.products_by_category",                   # noqa
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
@@ -224,7 +217,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "acctmarket2.applications.users.context_processors.allauth_settings",
+                "acctmarket2.applications.users.context_processors.allauth_settings",                   # noqa
             ],
         },
     },
@@ -266,7 +259,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = "mastergentility5@gmail.com"
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL  = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ADMIN
 # ------------------------------------------------------------------------------
@@ -278,7 +271,7 @@ ADMINS = [("""Douglas Chiemela""", "mastergentility5@gmail.com")]
 MANAGERS = ADMINS
 # https://cookiecutter-django.readthedocs.io/en/latest/settings.html#other-environment-settings
 # Force the `admin` sign in process to go through the `django-allauth` workflow
-DJANGO_ADMIN_FORCE_ALLAUTH = env.bool("DJANGO_ADMIN_FORCE_ALLAUTH", default=False)
+DJANGO_ADMIN_FORCE_ALLAUTH = env.bool("DJANGO_ADMIN_FORCE_ALLAUTH", default=False)                   # noqa
 
 # LOGGING
 # ------------------------------------------------------------------------------
@@ -290,7 +283,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",                   # noqa
         },
     },
     "handlers": {
@@ -306,7 +299,7 @@ LOGGING = {
 
 # django-allauth
 # ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
+ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)   # noqa
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 # https://docs.allauth.org/en/latest/account/configuration.html
@@ -320,11 +313,13 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_ADAPTER = "acctmarket2.applications.users.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
-ACCOUNT_FORMS = {"signup": "acctmarket2.applications.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "acctmarket2.applications.users.forms.UserSignupForm"}   # noqa
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_ADAPTER = "acctmarket2.applications.users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "acctmarket2.applications.users.adapters.SocialAccountAdapter"   # noqa
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_FORMS = {"signup": "acctmarket2.applications.users.forms.UserSocialSignupForm"}
+SOCIALACCOUNT_FORMS = {
+    "signup": "acctmarket2.applications.users.forms.UserSocialSignupForm"
+}
 
 
 # Your stuff...
@@ -379,7 +374,6 @@ JAZZMIN_SETTINGS = {
     "search_model": "register.CustomUser",
     "user_avatar": None,
     "topmenu_links": [
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-    ]
-
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},  # noqa
+    ],
 }

@@ -1,8 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden
 
-from acctmarket2.applications.users.models import (ContentManager,
-                                            CustomerSupportRepresentative)
+from acctmarket2.applications.users.models import (
+    ContentManager, CustomerSupportRepresentative)
 
 
 class ContentManagerRequiredMixin(LoginRequiredMixin):
@@ -16,7 +16,10 @@ class ContentManagerRequiredMixin(LoginRequiredMixin):
             return self.handle_no_permission()
 
         # Check if the user is a content manager or superuser
-        if not self.user_is_content_manager(request.user) and not request.user.is_superuser:
+        if (
+            not self.user_is_content_manager(request.user)
+            and not request.user.is_superuser
+        ):
             return HttpResponseForbidden(
                 "You don't have permission to access this page.",
             )

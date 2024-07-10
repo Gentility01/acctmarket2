@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from acctmarket2.applications.blog.models import (Announcement, Banner, BlogCategory,
-                                           Post)
+from acctmarket2.applications.blog.models import (Announcement, Banner,
+                                                  BlogCategory, Post)
 
 # Register your models here.
 
@@ -26,7 +26,10 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Banner)
 class BannerAdmin(admin.ModelAdmin):
-    list_display = ["title", "slug", "sub_title", "category", "price", "oldprice"]
+    list_display = [
+        "title", "slug", "sub_title",
+        "category", "price", "oldprice"
+    ]
 
 
 @admin.register(Announcement)

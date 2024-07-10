@@ -12,10 +12,9 @@ from django.views.generic import (DetailView, RedirectView, TemplateView,
 
 from acctmarket2.applications.ecommerce.models import CartOrder
 from acctmarket2.applications.users.forms import CustomSignupForm
-from acctmarket2.applications.users.models import (Account, Accountant, Administrator,
-                                            ContentManager, Customer,
-                                            CustomerSupportRepresentative,
-                                            User)
+from acctmarket2.applications.users.models import (
+    Account, Accountant, Administrator, ContentManager, Customer,
+    CustomerSupportRepresentative, User)
 
 
 class CustomSignupView(SignupView):
@@ -110,7 +109,7 @@ class AccountantAccount(SignupView):
     def form_valid(self, form):
         try:
             user = form.save(self.request)
-            financial_software_used = form.cleaned_data.get("financial_software_used")
+            financial_software_used = form.cleaned_data.get("financial_software_used")  # noqa
 
             account, created = Account.objects.get_or_create(owner=user)
             Accountant.objects.create(
@@ -134,14 +133,15 @@ class AdministratorAccount(SignupView):
     template_name = "account/administrator.html"
 
     def form_valid(self, form):
-        user = form.save(self.request)  # Use form.save() to get the user instance
+        user = form.save(self.request)  # Use form.save() to get the user instance     # noqa
         department = form.cleaned_data.get("department")
 
         # Get or create the associated account for the user
         account, created = Account.objects.get_or_create(owner=user)
 
         # Create the Administrator instance with the associated account
-        Administrator.objects.create(user=user, account=account, department=department)
+        Administrator.objects.create(
+            user=user, account=account, department=department)
 
         # Send email confirmation
         send_email_confirmation(self.request, user)

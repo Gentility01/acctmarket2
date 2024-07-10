@@ -4,8 +4,10 @@ from django.urls import reverse_lazy
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 
-from acctmarket2.applications.blog.forms import (Banner, BannerForm, BlogCategory,
-                                          BlogCategoryForm, Post, PostForm)
+from acctmarket2.applications.blog.forms import (Banner, BannerForm,
+                                                 BlogCategory,
+                                                 BlogCategoryForm, Post,
+                                                 PostForm)
 from acctmarket2.utils.views import ContentManagerRequiredMixin
 
 # Create your views here.
@@ -47,19 +49,24 @@ class CategoryListView(ContentManagerRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return BlogCategory.objects.annotate(total_products=Count("post")).order_by(
-            "-created_at",
+        return BlogCategory.objects.annotate(
+            total_products=Count("post")).order_by(
+                "-created_at",
         )
 
 
-class EditPostCategoryView(ContentManagerRequiredMixin, SlugMixin, UpdateView):
+class EditPostCategoryView(
+    ContentManagerRequiredMixin, SlugMixin, UpdateView
+):
     model = BlogCategory
     form_class = BlogCategoryForm
     template_name = "pages/blog/create_blog_category.html"
     success_url = reverse_lazy("blog:category_list")
 
 
-class DeletePostCategoryView(ContentManagerRequiredMixin, SlugMixin, DeleteView):
+class DeletePostCategoryView(
+    ContentManagerRequiredMixin, SlugMixin, DeleteView
+):
     model = BlogCategory
     template_name = "pages/blog/confirm_delete.html"
     success_url = reverse_lazy("blog:category_list")

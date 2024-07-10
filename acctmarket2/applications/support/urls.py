@@ -1,9 +1,10 @@
 from django.urls import path
 
 from acctmarket2.applications.support.views import (CreateFAQ, DeleteFAQViews,
-                                              EditFAQViews, FAQListView,
-                                              HELPOrFAQPage, TicketDetailView,
-                                              TicketListView)
+                                                    EditFAQViews, FAQListView,
+                                                    HELPOrFAQPage,
+                                                    TicketDetailView,
+                                                    TicketListView)
 
 app_name = "support"
 urlpatterns = [
