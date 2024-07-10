@@ -1,17 +1,19 @@
 from allauth.account.utils import send_email_confirmation
 from allauth.account.views import SignupView
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import (DetailView, RedirectView, TemplateView,
-                                  UpdateView)
+from django.views.generic import (CreateView, DetailView, RedirectView,
+                                  TemplateView, UpdateView)
 
 from acctmarket2.applications.ecommerce.models import CartOrder
-from acctmarket2.applications.users.forms import CustomSignupForm
+from acctmarket2.applications.users.forms import (AdministratorCreationForm,
+                                                  CustomSignupForm)
 from acctmarket2.applications.users.models import (
     Account, Accountant, Administrator, ContentManager, Customer,
     CustomerSupportRepresentative, User)
@@ -100,6 +102,26 @@ class ContentManagerAccount(SignupView):
 
 
 content_manager_account = ContentManagerAccount.as_view()
+
+class AdministratorCreateView(CreateView):      # noqa
+    model = get_user_model()
+    form_class = AdministratorCreationForm
+    template_name = "account/admin_register.html"
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        login(self.request, user)  # Log in the user immediately
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Redirect to the Django admin index page
+        return reverse_lazy("admin:index")
+
+
+user_admin = AdministratorCreateView.as_view()
 
 
 class AccountantAccount(SignupView):
