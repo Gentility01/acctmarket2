@@ -190,7 +190,7 @@ STATICFILES_FINDERS = [
 
 # Setting up static
 
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+# STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
 # MEDIA
 # ------------------------------------------------------------------------------
