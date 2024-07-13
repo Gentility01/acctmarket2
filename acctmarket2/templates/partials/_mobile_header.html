@@ -79,7 +79,7 @@
                   <a href="#">User <b class="caret"></b></a>
                   <ul class="submenu">
                     <li>
-                      <a href="% url 'users:detail' request.user.pk %}">Profile</a>
+                      <a href="{% url 'users:dashboard_view' %}">Dashboard</a>
                     </li>
                     <li>
                       <a href="{% url 'account_logout' %}">Signout</a>
