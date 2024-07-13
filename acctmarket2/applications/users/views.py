@@ -1,17 +1,20 @@
 from allauth.account.utils import send_email_confirmation
 from allauth.account.views import SignupView
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import (DetailView, RedirectView, TemplateView,
                                   UpdateView)
+from django.views.generic.edit import CreateView
 
 from acctmarket2.applications.ecommerce.models import CartOrder
-from acctmarket2.applications.users.forms import CustomSignupForm
+from acctmarket2.applications.users.forms import (CustomSignupForm,
+                                                  CustomUserCreationForm)
 from acctmarket2.applications.users.models import (
     Account, Accountant, Administrator, ContentManager, Customer,
     CustomerSupportRepresentative, User)
@@ -201,3 +204,18 @@ class CustomerAccount(SignupView):
 
 
 customers_account = CustomerAccount.as_view()
+
+
+class SuperuserSignupView(CreateView):
+    model = User
+    form_class = CustomUserCreationForm
+    template_name = "account/superuser_signup.html"
+    success_url = reverse_lazy('admin:login')  # Redirect to the admin login page
+
+    def form_valid(self, form):
+        # Set the necessary fields for superuser
+        form.instance.is_staff = True
+        form.instance.is_superuser = True
+        return super().form_valid(form)
+
+superuser = SuperuserSignupView.as_view()
