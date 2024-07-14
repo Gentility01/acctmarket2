@@ -31,7 +31,7 @@ gunicorn==22.0.0
 h11==0.14.0
 httptools==0.6.1
 idna==3.7
-# nowpayments==1.3.3
+nowpayments==1.3.3
 packaging==24.1
 pillow==10.3.0
 psycopg2-binary==2.9.9
