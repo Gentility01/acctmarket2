@@ -5,7 +5,7 @@ from .base import DATABASES, env
 # GENERAL
 # ------------------------------------------------------------------------------
 SECRET_KEY = env("DJANGO_SECRET_KEY")
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["acctmarket.onrender.com"])   # noqa
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["acctmarket.com"])   # noqa
 
 # DATABASES
 # ------------------------------------------------------------------------------
