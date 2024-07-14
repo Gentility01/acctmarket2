@@ -1,13 +1,15 @@
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import DatabaseError
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.views.generic import (
-    DetailView, ListView, TemplateView, View, FormView
-)
+from django.utils.html import strip_tags
+from django.views.generic import (DetailView, FormView, ListView, TemplateView,
+                                  View)
 
 from acctmarket2.applications.blog.models import Announcement
 from acctmarket2.applications.ecommerce.forms import ProductReviewForm
@@ -16,12 +18,7 @@ from acctmarket2.applications.ecommerce.models import (CartOrder,
                                                        Category, Product,
                                                        ProductImages,
                                                        ProductReview)
-
 from acctmarket2.applications.home.forms import ContactForm
-from django.utils.html import strip_tags
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.conf import settings
 
 # Create your views here.
 
@@ -261,7 +258,8 @@ class ContactPage(FormView):
 
         # Render the email content from a template
         subject = f"New Contact Us Message from {contact.name}"
-        html_message = render_to_string('emails/contact_email.html', {'contact': contact})
+        html_message = render_to_string(
+            'emails/contact_email.html', {'contact': contact})
         plain_message = strip_tags(html_message)
         from_email = contact.email
         to_email = settings.EMAIL_HOST_USER
@@ -278,8 +276,5 @@ class ContactPage(FormView):
         return super().form_valid(form)
 
 
-
 class TermsPolicy(TemplateView):
     template_name = "pages/terms_and_conditions.html"
-
-

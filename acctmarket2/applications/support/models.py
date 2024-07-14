@@ -1,14 +1,9 @@
 import auto_prefetch
 from django.conf import settings
-from django.db.models import (
-    SET_NULL, CharField, TextField, EmailField
-)
-
+from django.db.models import SET_NULL, CharField, EmailField, TextField
 
 from acctmarket2.utils.choices import Ticket
-from acctmarket2.utils.models import (
-    TitleTimeBasedModel, TimeBasedModel
-)
+from acctmarket2.utils.models import TimeBasedModel, TitleTimeBasedModel
 
 # Create your models here.
 
@@ -75,25 +70,23 @@ class FrequestAskQuestion(TitleTimeBasedModel):
 
     def __str__(self):
         return self.title
-    
-class ContactUs(TimeBasedModel):
-    name = CharField(max_length=100, null=True,
-        default=""
+
+class ContactUs(TimeBasedModel):                          # noqa
+    name = CharField(
+        max_length=100, null=True, default=""
     )
-    email = EmailField(null=True,
-        default=""
+    email = EmailField(
+        null=True, default=""
     )
-    subject = CharField(max_length=255, null=True,
-        default=""
-    ) 
-    message = TextField(null=True,
-        default=""
+    subject = CharField(
+        max_length=255, null=True, default=""
+    )
+    message = TextField(
+        null=True, default=""
     )
 
     class Meta:
         verbose_name = "Contact us"
         verbose_name_plural = "Contact us"
-
-    def __str__(self) -> str:
+    def __str__(self) -> str:                                  # noqa
         return f"contact from {self.name}"
-

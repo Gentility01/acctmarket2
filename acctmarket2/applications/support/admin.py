@@ -1,6 +1,6 @@
 from django.contrib import admin
-from acctmarket2.applications.support.models import ContactUs
 
+from acctmarket2.applications.support.models import ContactUs
 
 
 @admin.register(ContactUs)

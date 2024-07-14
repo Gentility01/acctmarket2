@@ -190,7 +190,7 @@ STATICFILES_FINDERS = [
 
 # Setting up static
 
-# STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+# STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"               # noqa
 
 # MEDIA
 # ------------------------------------------------------------------------------
@@ -383,6 +383,3 @@ JAZZMIN_SETTINGS = {
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},  # noqa
     ],
 }
-
-
-

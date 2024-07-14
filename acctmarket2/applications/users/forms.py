@@ -158,6 +158,7 @@ class CustomUserCreationForm(UserCreationForm):
         for field_name, field in self.fields.items():
             field.widget.attrs.update({'class': 'form-control'})
 
+
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
