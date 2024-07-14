@@ -5,7 +5,9 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, ListView, TemplateView, View
+from django.views.generic import (
+    DetailView, ListView, TemplateView, View, FormView
+)
 
 from acctmarket2.applications.blog.models import Announcement
 from acctmarket2.applications.ecommerce.forms import ProductReviewForm
@@ -14,6 +16,12 @@ from acctmarket2.applications.ecommerce.models import (CartOrder,
                                                        Category, Product,
                                                        ProductImages,
                                                        ProductReview)
+
+from acctmarket2.applications.home.forms import ContactForm
+from django.utils.html import strip_tags
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 
 # Create your views here.
 
@@ -243,9 +251,35 @@ class OrderDetails(LoginRequiredMixin, DetailView):
         return context
 
 
-class ContactPage(DetailView):
+class ContactPage(FormView):
     template_name = "pages/contact_page.html"
+    form_class = ContactForm
+    success_url = reverse_lazy("contact-success")
+
+    def form_valid(self, form):
+        contact = form.save()
+
+        # Render the email content from a template
+        subject = f"New Contact Us Message from {contact.name}"
+        html_message = render_to_string('emails/contact_email.html', {'contact': contact})
+        plain_message = strip_tags(html_message)
+        from_email = contact.email
+        to_email = settings.EMAIL_HOST_USER
+
+        # Send the email
+        send_mail(
+            subject,
+            plain_message,
+            from_email,
+            [to_email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return super().form_valid(form)
+
 
 
 class TermsPolicy(TemplateView):
     template_name = "pages/terms_and_conditions.html"
+
+

@@ -39,4 +39,8 @@ urlpatterns = [
         "term-policy", views.TermsPolicy.as_view(),
         name="termspolicy"
     ),
+    path(
+        "contact-us", views.ContactPage.as_view(), 
+        name="contact_us"
+    )
 ]
