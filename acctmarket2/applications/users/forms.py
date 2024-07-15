@@ -42,7 +42,7 @@ class CustomSignupBaseForm(SignupForm):
 
     name = CharField(max_length=255, label="Name", required=True)
     phone_no = CharField(max_length=20, label="Phone number", required=False)
-    terms = BooleanField(required=True,
+    terms = BooleanField(required=False,
                          label="I agree to the Terms and Conditions")
     country = CountryField(blank_label="(select country)").formfield(
         widget=CountrySelectWidget(),
