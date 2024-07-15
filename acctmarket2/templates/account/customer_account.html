@@ -14,7 +14,9 @@
             </h2>
             <div class="contact-form mt-sm-30">
               <form method="post" action="#">
-                {% if form.errors %}<div class="alert alert-danger" role="alert">{{ form.errors }}</div>{% endif %}
+                {% if form.errors %}
+                  <div class="alert alert-danger" role="alert">{{ form.errors }}</div>
+                {% endif %}
                 {% csrf_token %}
                 <div class="row">
                   <div class="col-sm-12 mt-30">{{ form.name.label_tag }}{{ form.name }}</div>
@@ -30,7 +32,7 @@
                     </label>
                   </div>
                   <div class="col-sm-12 mt-40">
-                    <button class="btn-common" type="submit">Sign up</button>
+                    <button class="btn btn-primary btn-block" type="submit">Sign up</button>
                   </div>
                 </div>
               </form>
