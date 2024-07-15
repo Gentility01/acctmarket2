@@ -259,7 +259,7 @@ class ContactPage(FormView):
         # Render the email content from a template
         subject = f"New Contact Us Message from {contact.name}"
         html_message = render_to_string(
-            'emails/contact_email.html', {'contact': contact})
+            "pages/contact_email.html", {"contact": contact})
         plain_message = strip_tags(html_message)
         from_email = contact.email
         to_email = settings.EMAIL_HOST_USER
