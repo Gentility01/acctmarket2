@@ -42,5 +42,9 @@ urlpatterns = [
     path(
         "contact-us", views.ContactPage.as_view(),
         name="contact_us"
+    ),
+    path(
+        "contact-success", views.ContactSuccessPage.as_view(),
+        name="contact_success"
     )
 ]

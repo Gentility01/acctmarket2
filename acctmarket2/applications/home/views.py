@@ -251,7 +251,7 @@ class OrderDetails(LoginRequiredMixin, DetailView):
 class ContactPage(FormView):
     template_name = "pages/contact_page.html"
     form_class = ContactForm
-    success_url = reverse_lazy("contact-success")
+    success_url = reverse_lazy("homeapp:contact_success")
 
     def form_valid(self, form):
         contact = form.save()
@@ -274,6 +274,10 @@ class ContactPage(FormView):
             fail_silently=False,
         )
         return super().form_valid(form)
+
+
+class ContactSuccessPage(TemplateView):
+    template_name = "pages/contact_success.html"
 
 
 class TermsPolicy(TemplateView):
