@@ -220,7 +220,7 @@
                         </div>
                         <div class="add-to-get mt-50">
                           <a href="#" class="add-to-cart">Add to Cart</a>
-                          <a href="#" class="add-to-cart compare">+ ADD to Compare</a>
+                          {% comment %} <a href="#" class="add-to-cart compare">+ ADD to Compare</a> {% endcomment %}
                         </div>
                       </div>
                     </div>
@@ -280,10 +280,10 @@
                     <div class="footer-menu">
                       <ul>
                         <li>
-                          <a href="#">Find shops</a>
+                          <a href="{% url 'homeapp:shop_list' %}">Find shops</a>
                         </li>
                         <li>
-                          <a href="#">About Us</a>
+                          <a href="{% url 'blog:blog_list' %}">Blog</a>
                         </li>
                         <li>
                           <a href="{% url 'homeapp:contact_us' %}">Contact Us</a>
@@ -310,26 +310,26 @@
                     <div class="footer-menu">
                       <ul>
                         <li>
-                          <a href="#">My Account</a>
+                          <a href="{% url 'users:dashboard_view' %}">My Account</a>
                         </li>
                         <li>
                           <a href="#">Order History</a>
                         </li>
                         <li>
-                          <a href="#">Wish List</a>
+                          <a href="{% url 'ecommerce:wishlists' %}">Wish List</a>
                         </li>
                         <li>
                           <a href="#">Customer Service</a>
                         </li>
-                        <li>
+                        {% comment %} <li>
                           <a href="#">Returns / Exchange</a>
-                        </li>
+                        </li> {% endcomment %}
                         <li>
                           <a href="#">FAQs</a>
                         </li>
-                        <li>
+                        {% comment %} <li>
                           <a href="#">Product Support</a>
-                        </li>
+                        </li> {% endcomment %}
                       </ul>
                     </div>
                   </div>
@@ -376,10 +376,10 @@
               <div class="payment-gateways pull-right">
                 {% comment %} <img src="{% static 'assets/images/footer/p1.png' %}" alt="" /> {% endcomment %}
                 <img src="{% static 'assets/images/footer/p2.png' %}" alt="" />
-                <img src="{% static 'assets/images/footer/p3.png' %}" alt="" />
+                {% comment %} <img src="{% static 'assets/images/footer/p3.png' %}" alt="" /> {% endcomment %}
                 <img src="{% static 'assets/images/footer/p4.png' %}" alt="" />
-                <img src="{% static 'assets/images/footer/p5.png' %}" alt="" />
-                <img src="{% static 'assets/images/footer/p6.png' %}" alt="" />
+                {% comment %} <img src="{% static 'assets/images/footer/p5.png' %}" alt="" />
+                <img src="{% static 'assets/images/footer/p6.png' %}" alt="" /> {% endcomment %}
               </div>
             </div>
           </div>

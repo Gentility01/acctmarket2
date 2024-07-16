@@ -161,11 +161,11 @@
             <li>
               <div class="noti-item w-full wg-user active">
                 <div class="image">
-                  <img src="{% static 'dashboard/images/avatar/user-11.png' %}" alt="" />
+                  <img src="{% static 'dashboard/images/avatar/anonymos.jpg' %}" alt="" />
                 </div>
                 <div class="flex-grow">
                   <div class="flex items-center justify-between">
-                    <a href="#" class="body-title">Cameron Williamson</a>
+                    <a href="#" class="body-title">C{{ request.user.name}}</a>
                     <div class="time">10:13 PM</div>
                   </div>
                   <div class="text-tiny">Hello?</div>
@@ -203,7 +203,7 @@
             <li>
               <div class="noti-item w-full wg-user active">
                 <div class="image">
-                  <img src="{% static 'dashboard/images/avatar/user-11.png' %}" alt="" />
+                  <img src="{% static 'dashboard/images/avatar/anonymos.jpg' %}" alt="" />
                 </div>
                 <div class="flex-grow">
                   <div class="flex items-center justify-between">
@@ -390,7 +390,7 @@
             data-bs-toggle="dropdown" aria-expanded="false">
             <span class="header-user wg-user">
               <span class="image">
-                <img src="{% static 'dashboard/images/avatar/user-1.png' %}" alt="" />
+                <img src="{% static 'dashboard/images/avatar/anonymos.jpg' %}" alt="" />
               </span>
               <span class="flex flex-column">
                 <span class="body-title mb-2">{{ request.user.name }}</span>

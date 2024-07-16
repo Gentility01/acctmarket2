@@ -9,7 +9,8 @@
            alt=""
            src="{% static 'dashboard/images/logo/logo.png' %}"
            data-light="images/logo/logo"
-           data-dark="images/logo/logo-dark.png" />
+           data-dark="images/logo/logo.png"
+           style="height:50px" />
     </a>
     <div class="button-show-hide">
       <i class="icon-menu-left"></i>
@@ -163,6 +164,37 @@
               </li>
             </ul>
           </li>
+        {% endif %}
+
+        {% if request.user.is_authenticated and request.user.is_customer %}
+          <li class="menu-item has-children">
+            <a href="javascript:void(0);" class="menu-item-button">
+              <div class="icon">
+                <i class="icon-shopping-cart"></i>
+              </div>
+              <div class="text">Product</div>
+            </a>
+            <ul class="sub-menu">
+              <li class="sub-menu-item">
+                <a href="{% url 'ecommerce:cart_list' %}" class="">
+                  <div class="text">Product Orders</div>
+                </a>
+              </li>
+              <li class="sub-menu-item">
+                <a href="{% url 'ecommerce:checkout' %}" class="">
+                  <div class="text">Product Checkout</div>
+                </a>
+              </li>
+              <li class="sub-menu-item">
+                <a href="{% url 'ecommerce:wishlists' %}" class="">
+                  <div class="text">Wishlists</div>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+
+
         {% endif %}
         {% if request.user.is_authenticated and request.user.is_customer_support_representative %}
           <li class="menu-item has-children">

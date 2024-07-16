@@ -3,196 +3,188 @@
 {% load static %}
 
 {% block content %}
-  <!-- main-content -->
-  <div class="main-content">
+<!-- main-content -->
+<div class="main-content">
+  <!-- main-content-wrap -->
+  <div class="main-content-inner">
     <!-- main-content-wrap -->
-    <div class="main-content-inner">
-      <!-- main-content-wrap -->
-      <div class="main-content-wrap">
-        <div class="tf-section-4 mb-30">
-          <!-- wg-goal -->
-          <div class="wg-goal">
-            <div class="image">
-              <img src="{% static 'dashboard/images/images-section/goal.jpg' %}" alt="" />
+    <div class="main-content-wrap">
+      <div class="tf-section-4 mb-30">
+        <!-- wg-goal -->
+        <div class="wg-goal">
+          <div class="image">
+            <img src="{% static 'dashboard/images/images-section/goal.jpg' %}" alt="" />
+          </div>
+          <div class="left">
+            <h5 class="mb-14">Great! Welcome {{ request.user.name }}</h5>
+            <div class="body-text mb-14">Feel free to view the work details at any time. We're glad to have you with us!
             </div>
-            <div class="left">
-              <h5 class="mb-14">Great! Welcome {{ request.user.name }}</h5>
-              <div class="body-text mb-14">Feel free to view the work details at any time. We're glad to have you with us!</div>
+          </div>
+          <div class="right">
+            <div id="line-chart-17">
+              <div class="circle_percent" data-percent="61">
+                <div class="circle_inner">
+                  <div class="round_per"></div>
+                </div>
+              </div>
             </div>
-            <div class="right">
-              <div id="line-chart-17">
-                <div class="circle_percent" data-percent="61">
-                  <div class="circle_inner">
-                    <div class="round_per"></div>
+          </div>
+        </div>
+        <!-- /wg-goal -->
+        <!-- chart-default -->
+        <div class="wg-chart-default style-1">
+          <div class="flex flex-column gap15 flex-shrink-0">
+            <div class="flex gap14 flex-column">
+              <div class="image type-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="52" viewBox="0 0 48 52" fill="none">
+                  <path
+                    d="M19.1094 2.12943C22.2034 0.343099 26.0154 0.343099 29.1094 2.12943L42.4921 9.85592C45.5861 11.6423 47.4921 14.9435 47.4921 18.5162V33.9692C47.4921 37.5418 45.5861 40.8431 42.4921 42.6294L29.1094 50.3559C26.0154 52.1423 22.2034 52.1423 19.1094 50.3559L5.72669 42.6294C2.63268 40.8431 0.726688 37.5418 0.726688 33.9692V18.5162C0.726688 14.9435 2.63268 11.6423 5.72669 9.85592L19.1094 2.12943Z"
+                    fill="#22C55E" />
+                </svg>
+                <i class="icon-shopping-bag"></i>
+              </div>
+              <div>
+                <div class="body-text mb-2">Total cats</div>
+                <h3>{{ request.session.cart_data_obj|length }}</h3>
+              </div>
+            </div>
+            <div class="box-icon-trending up">
+              <div class="body-title number tf-color-2">1.56%</div>
+              <i class="icon-trending-up"></i>
+            </div>
+          </div>
+          <div class="wrap-chart flex-grow">
+            <div id="line-chart-18"></div>
+          </div>
+        </div>
+        <!-- /chart-default -->
+        <!-- chart-default -->
+        <div class="wg-chart-default style-1">
+          <div class="flex flex-column gap15 flex-shrink-0">
+            <div class="flex gap14 flex-column">
+              <div class="image type-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="52" viewBox="0 0 48 52" fill="none">
+                  <path
+                    d="M19.1094 2.12943C22.2034 0.343099 26.0154 0.343099 29.1094 2.12943L42.4921 9.85592C45.5861 11.6423 47.4921 14.9435 47.4921 18.5162V33.9692C47.4921 37.5418 45.5861 40.8431 42.4921 42.6294L29.1094 50.3559C26.0154 52.1423 22.2034 52.1423 19.1094 50.3559L5.72669 42.6294C2.63268 40.8431 0.726688 37.5418 0.726688 33.9692V18.5162C0.726688 14.9435 2.63268 11.6423 5.72669 9.85592L19.1094 2.12943Z"
+                    fill="#FF5200" />
+                </svg>
+                <i class="icon-dollar-sign"></i>
+              </div>
+              <div>
+                <div class="body-text mb-2">Total Orders</div>
+                <h3>{{ orders.count }}</h3>
+              </div>
+            </div>
+            <div class="box-icon-trending down"></div>
+          </div>
+          <div class="wrap-chart flex-grow">
+            <div id="line-chart-19"></div>
+          </div>
+        </div>
+        <!-- /chart-default -->
+        <!-- chart-default -->
+        {% comment %} <div class="wg-chart-default style-1">
+          <div class="flex flex-column gap15 flex-shrink-0">
+            <div class="flex gap14 flex-column">
+              <div class="image type-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="52" viewBox="0 0 48 52" fill="none">
+                  <path
+                    d="M19.1094 2.12943C22.2034 0.343099 26.0154 0.343099 29.1094 2.12943L42.4921 9.85592C45.5861 11.6423 47.4921 14.9435 47.4921 18.5162V33.9692C47.4921 37.5418 45.5861 40.8431 42.4921 42.6294L29.1094 50.3559C26.0154 52.1423 22.2034 52.1423 19.1094 50.3559L5.72669 42.6294C2.63268 40.8431 0.726688 37.5418 0.726688 33.9692V18.5162C0.726688 14.9435 2.63268 11.6423 5.72669 9.85592L19.1094 2.12943Z"
+                    fill="#2377FC" />
+                </svg>
+                <i class="icon-users"></i>
+              </div>
+              <div>
+                <div class="body-text mb-2">Total Visitor</div>
+                <h3>34,945</h3>
+              </div>
+            </div>
+            <div class="box-icon-trending up">
+              <div class="body-title number tf-color-2">1.56%</div>
+              <i class="icon-trending-up"></i>
+            </div>
+          </div>
+          <div class="wrap-chart flex-grow">
+            <div id="line-chart-20"></div>
+          </div>
+        </div> {% endcomment %}
+        <!-- /chart-default -->
+      </div>
+      <div class="tf-section-8 mb-30">
+        <div class="tf-section-2"></div>
+      </div>
+      <div class="tf-section-2">
+        <!-- sales -->
+        <div class="wg-box">
+          <div class="flex items-center justify-between">
+            <h5>Product Orders</h5>
+            <div class="dropdown default">
+              <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <span class="view-all">View all<i class="icon-chevron-down"></i></span>
+              </button>
+            </div>
+          </div>
+          <div class="wg-table table-product-overview t4">
+            <ul class="table-title flex gap20 mb-14">
+              {% comment %} <li>
+                <div class="body-title">ID </div>
+              </li> {% endcomment %}
+              <li>
+                <div class="body-title">Invoice</div>
+              </li>
+              <li>
+                <div class="body-title mr-25 ">Price</div>
+              </li>
+              <li>
+                <div class="body-title">Paid</div>
+              </li>
+              {% comment %} <li>
+                <div class="body-title">Revenue</div>
+              </li> {% endcomment %}
+              <li>
+                <div class="body-title">Status</div>
+              </li>
+              <li>
+                <div class="body-title">Action</div>
+              </li>
+            </ul>
+            <div class="divider mb-14"></div>
+            <ul class="flex flex-column gap10">
+              {% for order in orders %}
+              <li class="product-item gap14">
+                {% comment %} <div class="image no-bg"> {% endcomment %}
+                  {% comment %} <img src="{% static 'dashboard/images/products/6.png' %}" alt="" /> {% endcomment %}
+                  {% comment %} </div> {% endcomment %}
+                <div class="flex items-center justify-between gap20 flex-grow">
+                  {% comment %} <div class="name">
+                    <a href="product-list.html" class="body-text">{{ order.id}}</a>
+                  </div> {% endcomment %}
+                  <div class="body-text">InvoiceNo-{{ order.id }}</div>
+                  <div class="body-text">${{ order.price }}</div>
+                  <div class="body-text">
+                    {% if order.paid_status == True %}
+                    <div class="block-available">Yes</div>
+                    {% else %}
+                    <div class="block-available">No</div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <div class="block-available">{{ order.product_status }}</div>
+                  </div>
+                  <div>
+                    <div class="block-available">
+                      <a href="{% url 'homeapp:order_details' order.pk %}">View</a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </li>
+              <li class="divider"></li>
+              {% endfor %}
+            </ul>
           </div>
-          <!-- /wg-goal -->
-          <!-- chart-default -->
-          <div class="wg-chart-default style-1">
-            <div class="flex flex-column gap15 flex-shrink-0">
-              <div class="flex gap14 flex-column">
-                <div class="image type-white">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       width="48"
-                       height="52"
-                       viewBox="0 0 48 52"
-                       fill="none">
-                    <path d="M19.1094 2.12943C22.2034 0.343099 26.0154 0.343099 29.1094 2.12943L42.4921 9.85592C45.5861 11.6423 47.4921 14.9435 47.4921 18.5162V33.9692C47.4921 37.5418 45.5861 40.8431 42.4921 42.6294L29.1094 50.3559C26.0154 52.1423 22.2034 52.1423 19.1094 50.3559L5.72669 42.6294C2.63268 40.8431 0.726688 37.5418 0.726688 33.9692V18.5162C0.726688 14.9435 2.63268 11.6423 5.72669 9.85592L19.1094 2.12943Z" fill="#22C55E" />
-                  </svg>
-                  <i class="icon-shopping-bag"></i>
-                </div>
-                <div>
-                  <div class="body-text mb-2">Total cats</div>
-                  <h3>34,945</h3>
-                </div>
-              </div>
-              <div class="box-icon-trending up">
-                <div class="body-title number tf-color-2">1.56%</div>
-                <i class="icon-trending-up"></i>
-              </div>
-            </div>
-            <div class="wrap-chart flex-grow">
-              <div id="line-chart-18"></div>
-            </div>
-          </div>
-          <!-- /chart-default -->
-          <!-- chart-default -->
-          <div class="wg-chart-default style-1">
-            <div class="flex flex-column gap15 flex-shrink-0">
-              <div class="flex gap14 flex-column">
-                <div class="image type-white">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       width="48"
-                       height="52"
-                       viewBox="0 0 48 52"
-                       fill="none">
-                    <path d="M19.1094 2.12943C22.2034 0.343099 26.0154 0.343099 29.1094 2.12943L42.4921 9.85592C45.5861 11.6423 47.4921 14.9435 47.4921 18.5162V33.9692C47.4921 37.5418 45.5861 40.8431 42.4921 42.6294L29.1094 50.3559C26.0154 52.1423 22.2034 52.1423 19.1094 50.3559L5.72669 42.6294C2.63268 40.8431 0.726688 37.5418 0.726688 33.9692V18.5162C0.726688 14.9435 2.63268 11.6423 5.72669 9.85592L19.1094 2.12943Z" fill="#FF5200" />
-                  </svg>
-                  <i class="icon-dollar-sign"></i>
-                </div>
-                <div>
-                  <div class="body-text mb-2">Total Orders</div>
-                  <h3>{{ orders.count }}</h3>
-                </div>
-              </div>
-              <div class="box-icon-trending down"></div>
-            </div>
-            <div class="wrap-chart flex-grow">
-              <div id="line-chart-19"></div>
-            </div>
-          </div>
-          <!-- /chart-default -->
-          <!-- chart-default -->
-          <div class="wg-chart-default style-1">
-            <div class="flex flex-column gap15 flex-shrink-0">
-              <div class="flex gap14 flex-column">
-                <div class="image type-white">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       width="48"
-                       height="52"
-                       viewBox="0 0 48 52"
-                       fill="none">
-                    <path d="M19.1094 2.12943C22.2034 0.343099 26.0154 0.343099 29.1094 2.12943L42.4921 9.85592C45.5861 11.6423 47.4921 14.9435 47.4921 18.5162V33.9692C47.4921 37.5418 45.5861 40.8431 42.4921 42.6294L29.1094 50.3559C26.0154 52.1423 22.2034 52.1423 19.1094 50.3559L5.72669 42.6294C2.63268 40.8431 0.726688 37.5418 0.726688 33.9692V18.5162C0.726688 14.9435 2.63268 11.6423 5.72669 9.85592L19.1094 2.12943Z" fill="#2377FC" />
-                  </svg>
-                  <i class="icon-users"></i>
-                </div>
-                <div>
-                  <div class="body-text mb-2">Total Visitor</div>
-                  <h3>34,945</h3>
-                </div>
-              </div>
-              <div class="box-icon-trending up">
-                <div class="body-title number tf-color-2">1.56%</div>
-                <i class="icon-trending-up"></i>
-              </div>
-            </div>
-            <div class="wrap-chart flex-grow">
-              <div id="line-chart-20"></div>
-            </div>
-          </div>
-          <!-- /chart-default -->
-        </div>
-        <div class="tf-section-8 mb-30">
-          <div class="tf-section-2"></div>
-        </div>
-        <div class="tf-section-2">
-          <!-- sales -->
-          <div class="wg-box">
-            <div class="flex items-center justify-between">
-              <h5>Product Orders</h5>
-              <div class="dropdown default">
-                <button class="btn btn-secondary dropdown-toggle"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false">
-                  <span class="view-all">View all<i class="icon-chevron-down"></i></span>
-                </button>
-              </div>
-            </div>
-            <div class="wg-table table-product-overview t4">
-              <ul class="table-title flex gap20 mb-14">
-                {% comment %} <li>
-                <div class="body-title">ID </div>
-                </li> {% endcomment %}
-                <li>
-                  <div class="body-title">Invoice</div>
-                </li>
-                <li>
-                  <div class="body-title mr-25 ">Price</div>
-                </li>
-                <li>
-                  <div class="body-title">Paid</div>
-                </li>
-                {% comment %} <li>
-                <div class="body-title">Revenue</div>
-                </li> {% endcomment %}
-                <li>
-                  <div class="body-title">Status</div>
-                </li>
-                <li>
-                  <div class="body-title">Action</div>
-                </li>
-              </ul>
-              <div class="divider mb-14"></div>
-              <ul class="flex flex-column gap10">
-                {% for order in orders %}
-                  <li class="product-item gap14">
-                    {% comment %} <div class="image no-bg"> {% endcomment %}
-                    {% comment %} <img src="{% static 'dashboard/images/products/6.png' %}" alt="" /> {% endcomment %}
-                    {% comment %} </div>  {% endcomment %}
-                    <div class="flex items-center justify-between gap20 flex-grow">
-                      {% comment %} <div class="name">
-                    <a href="product-list.html" class="body-text">{{ order.id}}</a>
-                      </div>  {% endcomment %}
-                      <div class="body-text">InvoiceNo-{{ order.id }}</div>
-                      <div class="body-text">${{ order.price }}</div>
-                      <div class="body-text">
-                        {% if order.paid_status == True %}
-                          <div class="block-available">Yes</div>
-                        {% else %}
-                          <div class="block-available">No</div>
-                        {% endif %}
-                      </div>
-                      <div>
-                        <div class="block-available">{{ order.product_status }}</div>
-                      </div>
-                      <div>
-                        <div class="block-available">
-                          <a href="{% url 'homeapp:order_details' order.pk %}">View</a>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="divider"></li>
-                {% endfor %}
-              </ul>
-            </div>
-            <div class="divider"></div>
-            {% comment %} <div class="flex items-center justify-between flex-wrap gap10">
+          <div class="divider"></div>
+          {% comment %} <div class="flex items-center justify-between flex-wrap gap10">
             <div class="text-tiny">Showing 5 entries</div>
             <ul class="wg-pagination">
               <li>
@@ -211,70 +203,67 @@
                 <a href="#"><i class="icon-chevron-right"></i></a>
               </li>
             </ul>
-            </div> {% endcomment %}
-          </div>
-          <!-- /sales -->
-          <!-- revenue -->
-          <div class="wg-box">
-            <div class="flex items-center justify-between">
-              <h5>Revenue</h5>
-              <div class="dropdown default">
-                <button class="btn btn-secondary dropdown-toggle"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false">
-                  <span class="icon-more"><i class="icon-more-horizontal"></i></span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <a href="javascript:void(0);">This Week</a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0);">Last Week</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap40">
-              <div>
-                <div class="mb-3">
-                  <div class="block-legend">
-                    <div class="dot t1"></div>
-                    <div class="text-tiny">Website</div>
-                  </div>
-                </div>
-                <div class="flex items-center gap10">
-                  <h4>$37,802</h4>
-                  <div class="box-icon-trending up">
-                    <i class="icon-trending-up"></i>
-                    <div class="body-title number">0.56%</div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div class="mb-3">
-                  <div class="block-legend">
-                    <div class="dot t4"></div>
-                    <div class="text-tiny">Store</div>
-                  </div>
-                </div>
-                <div class="flex items-center gap10">
-                  <h4>$28,305</h4>
-                  <div class="box-icon-trending up">
-                    <i class="icon-trending-up"></i>
-                    <div class="body-title number">0.56%</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div id="line-chart-22"></div>
-          </div>
-          <!-- /revenue -->
+          </div> {% endcomment %}
         </div>
+        <!-- /sales -->
+        <!-- revenue -->
+        {% comment %} <div class="wg-box">
+          <div class="flex items-center justify-between">
+            <h5>Revenue</h5>
+            <div class="dropdown default">
+              <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <span class="icon-more"><i class="icon-more-horizontal"></i></span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a href="javascript:void(0);">This Week</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0);">Last Week</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap40">
+            <div>
+              <div class="mb-3">
+                <div class="block-legend">
+                  <div class="dot t1"></div>
+                  <div class="text-tiny">Website</div>
+                </div>
+              </div>
+              <div class="flex items-center gap10">
+                <h4>$37,802</h4>
+                <div class="box-icon-trending up">
+                  <i class="icon-trending-up"></i>
+                  <div class="body-title number">0.56%</div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="mb-3">
+                <div class="block-legend">
+                  <div class="dot t4"></div>
+                  <div class="text-tiny">Store</div>
+                </div>
+              </div>
+              <div class="flex items-center gap10">
+                <h4>$28,305</h4>
+                <div class="box-icon-trending up">
+                  <i class="icon-trending-up"></i>
+                  <div class="body-title number">0.56%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="line-chart-22"></div>
+        </div> {% endcomment %}
+        <!-- /revenue -->
       </div>
-      <!-- /main-content-wrap -->
     </div>
     <!-- /main-content-wrap -->
-    <!-- bottom-page -->
+  </div>
+  <!-- /main-content-wrap -->
+  <!-- bottom-page -->
   {% endblock content %}
