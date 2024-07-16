@@ -59,24 +59,24 @@
           <nav id="my-menu">
             <ul>
               <li>
-                <a href="{% url 'homeapp:home' %}">Home <b class="caret"></b></a>
+                <a href="{% url 'homeapp:home' %}">Home </a>
               </li>
               <li>
                 <a href="{% url 'homeapp:shop_list' %}">
                   <span class="text-label label-featured"></span>
                   Shop
-                  <b class="caret"></b>
+
                 </a>
               </li>
               <li>
-                <a href="{% url 'blog:blog_views' %}">Blog <b class="caret"></b></a>
+                <a href="{% url 'blog:blog_views' %}">Blog </a>
               </li>
               <li>
                 <a href="{% url 'homeapp:contact_us' %}">Contact</a>
               </li>
               {% if request.user.is_authenticated %}
                 <li>
-                  <a href="#">User <b class="caret"></b></a>
+                  <a href="#">User </a>
                   <ul class="submenu">
                     <li>
                       <a href="{% url 'users:dashboard_view' %}">Dashboard</a>
@@ -109,7 +109,7 @@
           <ul>
             <li>
               <a href="javascript:void(0);" class="vm-menu"><i class="fa fa-navicon"></i><span>All
-              Categories</span></a>
+              Categories  <b class="caret"></b></span></a>
               <ul class="vm-dropdown">
                 {% for category in top_categories %}
                   {% if not category.sub_category %}
