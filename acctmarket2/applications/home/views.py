@@ -261,8 +261,10 @@ class ContactPage(FormView):
         html_message = render_to_string(
             "pages/contact_email.html", {"contact": contact})
         plain_message = strip_tags(html_message)
-        from_email = contact.email
+        from_email = settings.DEFAULT_FROM_EMAIL
+        print(from_email, "oooooooooooo")
         to_email = settings.EMAIL_HOST_USER
+        print(to_email, "kkkkkkkkkkkkkkkkkkkkkkkkkk")
 
         # Send the email
         send_mail(

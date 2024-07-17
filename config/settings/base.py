@@ -258,13 +258,16 @@ EMAIL_BACKEND = env(
     default="django.core.mail.backends.smtp.EmailBackend",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
-EMAIL_TIMEOUT = 5
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = "acctmarket01@gmail.com"
+# EMAIL_TIMEOUT = 5
+EMAIL_HOST = "smtp.privateemail.com"
+# EMAIL_PORT = 587
+EMAIL_PORT = 465
+# EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+# EMAIL_USE_SSL = True
+EMAIL_HOST_USER = "helpdesk@acctmarket.com"
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ADMIN
@@ -272,7 +275,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Django Admin URL.
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = [("""Douglas Chiemela""", "mastergentility5@gmail.com")]
+ADMINS = [("""Douglas Chiemela""", "helpdesk@acctmarket.com")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 # https://cookiecutter-django.readthedocs.io/en/latest/settings.html#other-environment-settings
