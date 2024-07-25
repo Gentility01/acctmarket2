@@ -14,7 +14,15 @@
             </h2>
             <div class="contact-form mt-sm-30">
               <form method="post" action="#">
-                {% if form.errors %}<div class="alert alert-danger" role="alert">{{ form.errors }}</div>{% endif %}
+                {% if form.errors %}
+            <div class="alert alert-danger" role="alert">
+              {% for field, errors in form.errors.items %}
+              {% for error in errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+              {% endfor %}
+            </div>
+            {% endif %}
                 {% csrf_token %}
                 <div class="row">
                   <div class="col-sm-12 mt-30">{{ form.name }}</div>

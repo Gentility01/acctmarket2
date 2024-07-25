@@ -96,6 +96,9 @@ class ContentManagerAccount(SignupView):
 
             send_email_confirmation(self.request, user)
             return HttpResponseRedirect("/accounts/confirm-email/")
+        except ValueError as e:                 # noqa
+            form.add_error(None, "The provided email address is not valid or already in use.")    # noqa
+            return self.form_invalid(form)
         except (DatabaseError, ValidationError) as e:
             form.add_error(None, f"An error occurred: {e!s}")
             return self.form_invalid(form)
@@ -122,6 +125,12 @@ class AccountantAccount(SignupView):
 
             send_email_confirmation(self.request, user)
             return HttpResponseRedirect("/accounts/confirm-email/")
+        except ValueError as e:      # noqa
+            form.add_error(
+                None,
+                "The provided email address is not valid or already in use."
+            )
+            return self.form_invalid(form)
         except (DatabaseError, ValidationError) as e:
             form.add_error(None, f"An error occurred: {e!s}")
             return self.form_invalid(form)
@@ -174,6 +183,10 @@ class CustomerSupportRepresentativeAccount(SignupView):
 
             send_email_confirmation(self.request, user)
             return HttpResponseRedirect("/accounts/confirm-email/")
+        except ValueError as e:                       # noqa
+            # Handle the case where the email address is causing a ValueError
+            form.add_error(None, "The provided email address is not valid or already in use.")           # noqa
+            return self.form_invalid(form)
         except (DatabaseError, ValidationError) as e:
             form.add_error(None, f"An error occurred: {e!s}")
             return self.form_invalid(form)
@@ -197,6 +210,10 @@ class CustomerAccount(SignupView):
 
             send_email_confirmation(self.request, user)
             return HttpResponseRedirect("/accounts/confirm-email/")
+        except ValueError as e:                               # noqa
+            # Handle the case where the email address is causing a ValueError
+            form.add_error(None, "The provided email address is not valid or already in use.")     # noqa
+            return self.form_invalid(form)
         except (DatabaseError, ValidationError) as e:
             form.add_error(None, f"An error occurred: {e!s}")
             return self.form_invalid(form)
