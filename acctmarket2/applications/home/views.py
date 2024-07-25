@@ -265,6 +265,7 @@ class ContactPage(FormView):
         print(from_email, "oooooooooooo")
         to_email = settings.EMAIL_HOST_USER
         print(to_email, "kkkkkkkkkkkkkkkkkkkkkkkkkk")
+        print(from_email, "xxxxxxxxxxxxxxxxxxxxxxxxxx")
 
         # Send the email
         send_mail(

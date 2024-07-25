@@ -2,7 +2,6 @@
 from .base import *  # noqa
 from .base import DATABASES, env
 
-DEBUG = True
 # GENERAL
 # ------------------------------------------------------------------------------
 SECRET_KEY = env("DJANGO_SECRET_KEY")
@@ -59,7 +58,8 @@ MEDIA_URL = "/media/"
 # EMAIL
 # ------------------------------------------------------------------------------
 DEFAULT_FROM_EMAIL = env(
-    "DJANGO_DEFAULT_FROM_EMAIL", default="acctmarket2 <noreply@example.com>"
+    "DJANGO_DEFAULT_FROM_EMAIL",
+    default=f"AcctMarket Helpdesk <{EMAIL_HOST_USER}>"               # noqa
 )
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 EMAIL_SUBJECT_PREFIX = env("DJANGO_EMAIL_SUBJECT_PREFIX", default="[Acctmarket] ")  # noqa

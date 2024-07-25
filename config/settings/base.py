@@ -268,7 +268,7 @@ EMAIL_USE_SSL = True
 EMAIL_HOST_USER = "helpdesk@acctmarket.com"
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = f"AcctMarket Helpdesk <{EMAIL_HOST_USER}>"
 
 # ADMIN
 # ------------------------------------------------------------------------------
