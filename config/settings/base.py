@@ -366,6 +366,10 @@ cloudinary.config(
 PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY")
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY")
 
+# exchange rate keys
+# https://www.exchangerate-api.com/
+EXCHANGE_RATE_API_KEY = env("EXCHANGE_RATE_API_KEY")
+EXCHANGE_RATE_API_URL = env("EXCHANGE_RATE_API_URL")
 
 # Nowpayment integration
 NOWPAYMENTS_API_KEY = env("NOWPAYMENTS_API_KEY")

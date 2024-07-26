@@ -29,6 +29,7 @@ from acctmarket2.applications.ecommerce.models import (CartOrder,
                                                        Product, ProductImages,
                                                        ProductKey,
                                                        ProductReview, WishList)
+from acctmarket2.utils.payments import convert_to_naira, get_exchange_rate
 from acctmarket2.utils.views import ContentManagerRequiredMixin
 
 logger = logging.getLogger(__name__)
@@ -607,6 +608,32 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
     # Overriding the get method to initialize payment
     def get(self, request, order_id, *args, **kwargs):
+        """
+        Retrieves a `CartOrder` object based on the provided
+        `order_id` and the user making the request.
+        Sets the payment method of the order to "paystack"
+        and saves the order.
+        Retrieves or creates a `Payment` object associated
+        with the order.
+        Sends a POST request to the Paystack API
+        to initialize a transaction.
+        Handles the response from the API and redirects
+        the user to the authorization URL if the status is True.
+        Otherwise, displays an error message and redirects
+        the user to the checkout page.
+
+        Parameters:
+            request (HttpRequest): The HTTP request object.
+            order_id (int): The ID of the order.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            HttpResponseRedirect: A redirect to the
+            authorization URL if the status is True.
+            HttpResponseRedirect: A redirect to the
+            checkout page if the status is False.
+        """
         order = get_object_or_404(CartOrder, id=order_id, user=request.user)
 
         # Set the payment method to Paystack
@@ -622,6 +649,14 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
             },
         )
 
+        # adding the exchange rate
+        try:
+            exchange_rate = get_exchange_rate()
+            amount_in_naira = convert_to_naira(payment.amount, exchange_rate)
+        except Exception as e:
+            messages.error(request, f"Error fetching exchange rate: {str(e)}")
+            return redirect("ecommerce:checkout")
+
         headers = {
             "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
             "Content-Type": "application/json",
@@ -629,7 +664,7 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
         data = {
             "email": request.user.email,
-            "amount": payment.amount_value(),  # Amount in kobo
+            "amount": int(amount_in_naira * 100),  # Amount in kobo
             "reference": payment.reference,
             "callback_url": request.build_absolute_uri(
                 reverse("ecommerce:verify_payment", args=[payment.reference]),
