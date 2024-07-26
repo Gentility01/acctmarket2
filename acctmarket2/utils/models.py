@@ -48,8 +48,8 @@ class TitleandUIDTimeBasedModel(TimeBasedModel):
         abstract = True
         ordering = ["title", "-created_at", "-updated_at"]
 
-    def __str__(self):
-        return str(self.id)
+    # def __str__(self):
+    #     return str(self.id)
 
 
 class UIDTimeBasedModel(TimeBasedModel):
