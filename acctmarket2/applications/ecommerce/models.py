@@ -149,7 +149,10 @@ class Product(TitleandUIDTimeBasedModel, ImageTitleTimeBaseModels):
         return self.price
 
     def __str__(self):
-        return self.title if self.title else f"Product ID {self.id}"
+        if not self.title:
+            logger.error(f"Product ID {self.id} has no title")
+            return f"Product ID {self.id}"
+        return self.title
 
 
 class ProductKey(TimeBasedModel):

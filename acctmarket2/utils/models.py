@@ -48,8 +48,8 @@ class TitleandUIDTimeBasedModel(TimeBasedModel):
         abstract = True
         ordering = ["title", "-created_at", "-updated_at"]
 
-    # def __str__(self):
-    #     return str(self.id)
+    def __str__(self):
+        return self.title if self.title else f"Object ID {self.id}"
 
 
 class UIDTimeBasedModel(TimeBasedModel):
