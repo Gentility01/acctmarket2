@@ -1,3 +1,4 @@
+import logging
 import secrets
 import uuid
 from decimal import Decimal
@@ -23,6 +24,9 @@ from acctmarket2.utils.models import (ImageTitleTimeBaseModels, TimeBasedModel,
 from acctmarket2.utils.payments import PayStack
 
 # Create your models here.
+
+
+logger = logging.getLogger(__name__)
 
 
 class Permissions:
@@ -305,11 +309,15 @@ class Payment(TimeBasedModel):
         return int(self.amount * 100)
 
     def verify_paystack_payment(self) -> bool:
-        # paystack payment verification
+        # Paystack payment verification
         paystack = PayStack()
         status, result = paystack.verify_payment(self.reference)
         if status:
-            if result["amount"] / 100 == self.amount:  # Amount in kobo
+            paystack_amount = Decimal(result["amount"]) / 100  # Amount in kobo to NGN                # noqa
+            print(paystack_amount, "xxxxxxxxxxxxxxxxxxxxxxx")
+            print(self.amount, "vvvvvvvvvvvvvvvvvvvvvvv")
+            self.amount = paystack_amount
+            if paystack_amount == self.amount:
                 self.status = "verified"
                 self.save()
                 self.order.paid_status = True
@@ -325,13 +333,17 @@ class Payment(TimeBasedModel):
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
         response = requests.get(
-            f"https://api.nowpayments.io/v1/payment/{self.reference}", headers=headers  # noqa
+            f"https://api.nowpayments.io/v1/payment/{self.reference}", headers=headers        # noqa
         )
         if response.status_code == 200:
             result = response.json()
+            nowpayments_amount = Decimal(result["pay_amount"])
+            logger.debug(
+                f"NowPayments amount: {nowpayments_amount}, Payment amount: {self.amount}"     # noqa
+            )
             if (
                 result["payment_status"] == "confirmed"
-                and result["pay_amount"] == self.amount
+                and nowpayments_amount == self.amount
             ):
                 self.status = "verified"
                 self.verified = True

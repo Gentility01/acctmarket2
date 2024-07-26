@@ -255,7 +255,7 @@
                         <a href="{% url 'homeapp:shop_list' %}">Find shops</a>
                       </li>
                       <li>
-                        <a href="{% url 'blog:blog_list' %}">Blog</a>
+                        <a href="{% url 'blog:blog_views' %}">Blog</a>
                       </li>
                       <li>
                         <a href="{% url 'homeapp:contact_us' %}">Contact Us</a>
@@ -297,7 +297,7 @@
                         <a href="#">Returns / Exchange</a>
                       </li> {% endcomment %}
                       <li>
-                        <a href="#">FAQs</a>
+                        <a href="{% url 'support:helppage' %}">FAQs</a>
                       </li>
                       {% comment %} <li>
                         <a href="#">Product Support</a>

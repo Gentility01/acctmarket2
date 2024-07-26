@@ -9,21 +9,14 @@
         <div class="row align-items-center">
           <div class="col-lg-6">
             <div class="topbar-left">
-              <ul class="list-none">
-                <li>
-                  SHOP EVENTS & SAVE UP TO <span>65% OFF!</span>
-                </li>
-                <li>
-                  Call Us: <span>001-1234-88888</span>
-                </li>
-              </ul>
+
             </div>
           </div>
           <div class="col-lg-6">
             <div class="topbar-right">
               <div class="register-login style-2 pull-right">
                 {% if request.user.is_authenticated %}
-                  <a href="{% url 'users:dashboard_view' %}">dashboard</a>
+                  <a href="{% url 'users:dashboard_view' %}">Dashboard</a>
                   {% comment %} <a href="{% url 'users:detail' request.user.pk %}">profile</a> {% endcomment %}
                   <span>/</span>
                   <a href="{% url 'account_logout' %}">Signout</a>

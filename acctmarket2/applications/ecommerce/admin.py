@@ -59,7 +59,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(CartOrder)
 class CartOrderAdmin(admin.ModelAdmin):
-    list_display = ["user", "price", "paid_status", "product_status"]
+    list_display = [
+        "user", "price", "paid_status",
+        "product_status", "payment_method"
+    ]
 
 
 @admin.register(ProductReview)
