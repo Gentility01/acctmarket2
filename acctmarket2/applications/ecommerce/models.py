@@ -148,8 +148,8 @@ class Product(TitleandUIDTimeBasedModel, ImageTitleTimeBaseModels):
             return self.price * (1 - self.discount_percentage / 100)
         return self.price
 
-    # def __str__(self):
-    #     return self.title or ""
+    def __str__(self):
+        return str(self.title) or str(self.id)
 
 
 class ProductKey(TimeBasedModel):
