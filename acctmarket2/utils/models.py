@@ -49,7 +49,7 @@ class TitleandUIDTimeBasedModel(TimeBasedModel):
         ordering = ["title", "-created_at", "-updated_at"]
 
     def __str__(self):
-        return str(self.title) or str(self.id)
+        return str(self.id)
 
 
 class UIDTimeBasedModel(TimeBasedModel):
