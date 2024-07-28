@@ -1,3 +1,4 @@
+import json
 import logging
 from decimal import Decimal
 
@@ -693,6 +694,78 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
             return redirect("ecommerce:checkout")    # noqa
 
 
+class NowPaymentView(View):
+    def get_supported_currencies(self):
+        headers = {
+            "x-api-key": settings.NOWPAYMENTS_API_KEY,
+        }
+        response = requests.get(
+            "https://api.nowpayments.io/v1/currencies", headers=headers
+        )
+        if response.status_code == 200:
+            return response.json()["currencies"]
+        return []
+
+    def get(self, request, order_id):
+        order = get_object_or_404(CartOrder, id=order_id, user=request.user)
+        supported_currencies = self.get_supported_currencies()
+        return render(
+            request,
+            "pages/ecommerce/create_nowpayment.html",
+            {
+                "supported_currencies": supported_currencies,
+                "order": order,
+            },
+        )
+
+    def post(self, request, order_id):
+        order = get_object_or_404(CartOrder, id=order_id, user=request.user)
+        pay_currency = request.POST.get("pay_currency")
+
+        # Set the payment method to nowpayments
+        order.payment_method = "nowpayments"
+        order.save()
+
+        # Prepare the request payload
+        payload = {
+            "price_amount": str(order.price),
+            "price_currency": "USD",  # Assuming the order price is in USD
+            "pay_currency": pay_currency,
+            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),  # Updated IPN URL      # noqa
+            "order_id": str(order.id),
+            "order_description": f"Order #{order.id} for user {order.user.id}",
+        }
+
+        # Send the request to NOWPayments
+        headers = {
+            "x-api-key": settings.NOWPAYMENTS_API_KEY,
+        }
+        response = requests.post(
+            "https://api.nowpayments.io/v1/invoice", json=payload, headers=headers   # noqa
+        )
+
+        # Process the response
+        if response.status_code == 200:
+            response_data = response.json()
+            return redirect(response_data["invoice_url"])
+        else:
+            return JsonResponse(response.json(), status=response.status_code)
+
+
+# IPN (Instant Payment Notification) endpoint for NowPayments
+@method_decorator(csrf_exempt, name='dispatch')
+class IPNView(View):
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)  # Changed to read JSON data
+        payment_reference = data.get("order_id")
+        payment = get_object_or_404(Payment, reference=payment_reference)
+        if payment.verify_payment_nowpayments():  # Added verification for NowPayments         # noqa
+            # Redirect to the VerifyPaymentView
+            verify_url = reverse("ecommerce:verify_payment", args=[payment_reference])        # noqa
+            return redirect(verify_url)
+        return JsonResponse({"status": "failed"}, status=400)
+
+
 class VerifyPaymentView(View):
     def get(self, request, reference, *args, **kwargs):
         """
@@ -924,76 +997,3 @@ class AddToWishlistView(View):
             }
 
         return JsonResponse(context)
-
-
-class NowPaymentView(View):
-    def get_supported_currencies(self):
-        headers = {
-            "x-api-key": settings.NOWPAYMENTS_API_KEY,
-        }
-        response = requests.get(
-            "https://api.nowpayments.io/v1/currencies", headers=headers
-        )
-        if response.status_code == 200:
-            return response.json()["currencies"]
-        return []
-
-    def get(self, request, order_id):
-        order = get_object_or_404(CartOrder, id=order_id, user=request.user)
-        supported_currencies = self.get_supported_currencies()
-        return render(
-            request,
-            "pages/ecommerce/create_nowpayment.html",
-            {
-                "supported_currencies": supported_currencies,
-                "order": order,
-            },
-        )
-
-    def post(self, request, order_id):
-        order = get_object_or_404(CartOrder, id=order_id, user=request.user)
-        pay_currency = request.POST.get("pay_currency")
-
-        # Set the payment method to nowpayments
-        order.payment_method = "nowpayments"
-        order.save()
-
-        # Prepare the request payload
-        payload = {
-            "price_amount": str(order.price),
-            "price_currency": "USD",  # Assuming the order price is in USD
-            "pay_currency": pay_currency,
-            "ipn_callback_url": "https://yourwebsite.com/ipn/",  # IPN URL
-            "order_id": str(order.id),
-            "order_description": f"Order #{order.id} for user {order.user.id}",
-        }
-
-        # Send the request to NOWPayments
-        headers = {
-            "x-api-key": settings.NOWPAYMENTS_API_KEY,
-        }
-        response = requests.post(
-            "https://api.nowpayments.io/v1/invoice", json=payload, headers=headers   # noqa
-        )
-
-        # Process the response
-        if response.status_code == 200:
-            response_data = response.json()
-            return redirect(response_data["invoice_url"])
-        else:
-            return JsonResponse(response.json(), status=response.status_code)
-
-
-# IPN (Instant Payment Notification) endpoint for NowPayments
-@method_decorator(csrf_exempt, name="dispatch")
-class IPNView(View):
-    def post(self, request):
-        data = request.POST
-        payment_reference = data.get("order_id")
-        payment = get_object_or_404(Payment, reference=payment_reference)
-        if payment.verify_payment_nowpayments():
-            # Redirect to the VerifyPaymentView
-            verify_url = reverse(
-                "ecommerce:verify_payment", args=[payment_reference])
-            return redirect(verify_url)
-        return JsonResponse({"status": "failed"}, status=400)

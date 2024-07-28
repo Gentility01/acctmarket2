@@ -4,7 +4,6 @@ import uuid
 from decimal import Decimal
 
 import auto_prefetch
-import requests
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.conf import settings
 from django.contrib.auth.models import Permission
@@ -21,7 +20,7 @@ from acctmarket2.utils.choices import ProductStatus, Rating, Status
 from acctmarket2.utils.media import MediaHelper
 from acctmarket2.utils.models import (ImageTitleTimeBaseModels, TimeBasedModel,
                                       TitleandUIDTimeBasedModel)
-from acctmarket2.utils.payments import PayStack
+from acctmarket2.utils.payments import NowPayment, PayStack
 
 # Create your models here.
 
@@ -331,25 +330,14 @@ class Payment(TimeBasedModel):
         return False
 
     def verify_payment_nowpayments(self):
-        # NowPayments payment verification
-        headers = {
-            "x-api-key": settings.NOWPAYMENTS_API_KEY,
-        }
-        response = requests.get(
-            f"https://api.nowpayments.io/v1/payment/{self.reference}", headers=headers        # noqa
-        )
-        if response.status_code == 200:
-            result = response.json()
+        nowpayment = NowPayment()
+        result = nowpayment.verify_payment(self.reference)
+        if result and result["payment_status"] == "confirmed":
             nowpayments_amount = Decimal(result["pay_amount"])
-            logger.debug(
-                f"NowPayments amount: {nowpayments_amount}, Payment amount: {self.amount}"     # noqa
-            )
-            if (
-                result["payment_status"] == "confirmed"
-                and nowpayments_amount == self.amount
-            ):
+            if nowpayments_amount == self.amount:
                 self.status = "verified"
                 self.verified = True
+                self.amount = nowpayments_amount
                 self.save()
                 self.order.paid_status = True
                 self.order.save()

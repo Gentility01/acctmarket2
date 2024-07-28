@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import requests
 from django.conf import settings
+from django.urls import reverse
 
 
 class PayStack:
@@ -30,7 +31,7 @@ class NowPayment:
     NOWPAYMENTS_API_KEY = settings.NOWPAYMENTS_API_KEY
     NOWPAYMENTS_API_URL = "https://api.nowpayments.io/v1/"
 
-    def create_payment(self, amount, currency, order_id, description):
+    def create_payment(self, amount, currency, order_id, description, request):
         url = f"{self.NOWPAYMENTS_API_URL}invoice"
 
         headers = {
@@ -43,12 +44,25 @@ class NowPayment:
             "price_currency": currency,
             "order_id": order_id,
             "order_description": description,
-            "ipn_callback_url": "your_ipn_callback_url",
+            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),  # Updated IPN URL     # noqa
             "success_url": "http://acctmarket.com/ecommerce/payment-complete",
             "cancel_url": "http://acctmarket.com/ecommerce/payment-failed",
+            # "success_url": "http://127.0.0.1:8000/ecommerce/payment-complete",               # noqa
+            # "cancel_url": "http://127.0.0.1:8000/ecommerce/payment-failed",
         }
         response = requests.post(url, headers=headers, json=data)
         return response.json()
+
+    def verify_payment(self, payment_reference):
+        headers = {
+            "x-api-key": settings.NOWPAYMENTS_API_KEY,
+        }
+        response = requests.get(
+            f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}", headers=headers              # noqa
+        )
+        if response.status_code == 200:
+            return response.json()
+        return None
 
 
 logger = logging.getLogger(__name__)
