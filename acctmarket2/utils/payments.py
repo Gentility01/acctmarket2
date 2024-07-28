@@ -44,11 +44,15 @@ class NowPayment:
             "price_currency": currency,
             "order_id": order_id,
             "order_description": description,
-            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),  # Updated IPN URL     # noqa
-            "success_url": "http://acctmarket.com/ecommerce/payment-complete",
-            "cancel_url": "http://acctmarket.com/ecommerce/payment-failed",
-            # "success_url": "http://127.0.0.1:8000/ecommerce/payment-complete",               # noqa
-            # "cancel_url": "http://127.0.0.1:8000/ecommerce/payment-failed",
+            "ipn_callback_url": request.build_absolute_uri(
+                reverse("ecommerce:ipn")
+            ),  # Updated IPN URL
+            "success_url": request.build_absolute_uri(
+                reverse("ecommerce:payment_complete")
+            ),
+            "cancel_url": request.build_absolute_uri(
+                reverse("ecommerce:payment_failed")
+            )
         }
         response = requests.post(url, headers=headers, json=data)
         return response.json()
@@ -58,7 +62,7 @@ class NowPayment:
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
         response = requests.get(
-            f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}", headers=headers              # noqa
+            f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}", headers=headers                          # noqa
         )
         if response.status_code == 200:
             return response.json()

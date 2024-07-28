@@ -316,8 +316,6 @@ class Payment(TimeBasedModel):
         status, result = paystack.verify_payment(self.reference)
         if status:
             paystack_amount = Decimal(result["amount"]) / 100  # Amount in kobo to NGN                # noqa
-            print(paystack_amount, "xxxxxxxxxxxxxxxxxxxxxxx")
-            print(self.amount, "vvvvvvvvvvvvvvvvvvvvvvv")
             self.amount = paystack_amount
             if paystack_amount == self.amount:
                 self.status = "verified"

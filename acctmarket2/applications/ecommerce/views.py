@@ -758,12 +758,27 @@ class IPNView(View):
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)  # Changed to read JSON data
         payment_reference = data.get("order_id")
-        payment = get_object_or_404(Payment, reference=payment_reference)
-        if payment.verify_payment_nowpayments():  # Added verification for NowPayments         # noqa
-            # Redirect to the VerifyPaymentView
-            verify_url = reverse("ecommerce:verify_payment", args=[payment_reference])        # noqa
-            return redirect(verify_url)
-        return JsonResponse({"status": "failed"}, status=400)
+
+        logging.info(
+            f"IPN received for payment reference: {payment_reference}"
+        )
+
+        try:
+            payment = get_object_or_404(Payment, reference=payment_reference)
+            if payment.verify_payment_nowpayments():  # Added verification for NowPayments                # noqa
+                # Redirect to the VerifyPaymentView
+                verify_url = reverse(
+                    "ecommerce:verify_payment", args=[payment_reference]
+                )
+                return JsonResponse(
+                    {"status": "success", "redirect_url": verify_url}
+                )                    # noqa
+            return JsonResponse({"status": "failed"}, status=400)
+        except Exception as e:
+            logging.error(f"IPN processing error: {e}")
+            return JsonResponse(
+                {"status": "error", "message": str(e)}, status=500
+            )
 
 
 class VerifyPaymentView(View):
