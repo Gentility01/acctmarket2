@@ -372,7 +372,9 @@ EXCHANGE_RATE_API_KEY = env("EXCHANGE_RATE_API_KEY")
 EXCHANGE_RATE_API_URL = env("EXCHANGE_RATE_API_URL")
 
 # Nowpayment integration
+# https://documenter.getpostman.com/view/7907941/2s93JusNJt
 NOWPAYMENTS_API_KEY = env("NOWPAYMENTS_API_KEY")
+USE_NOWPAYMENTS_SANDBOX = env.bool("USE_NOWPAYMENTS_SANDBOX", default=True)
 
 
 # Jazmin settings

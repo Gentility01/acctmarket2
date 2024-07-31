@@ -9,7 +9,8 @@
         <div class="col-md-6">
           <div class="card">
             <div class="card-header text-white bg-primary text-center">
-              <h3>Create Payment for Order #{{ order.id }}</h3>
+              {% comment %} <h3>Create Payment for Order #{{ order.id }}</h3> {% endcomment %}
+              <h3>Create Payment</h3>
             </div>
             <div class="card-body">
               <p class="lead text-center">Amount: ${{ order.price }}</p>
@@ -33,6 +34,33 @@
       $(document).ready(function() {
         $('.select2').select2();
       });
+
+      document.addEventListener("DOMContentLoaded", function() {
+        const orderId = "{{ order.id }}";  // Ensure `order` is in the context when rendering the template
+
+        if (orderId) {
+            fetch("{% url 'ecommerce:ipn' %}", {  // Use Django template tag to generate the URL
+                method: "POST",  // HTTP method set to POST
+                headers: {
+                    "Content-Type": "application/json",  // Set the request content type to JSON
+                },
+                body: JSON.stringify({
+                    order_id: orderId  // Include the actual order ID
+                }),
+            })
+            .then(response => response.json())  // Parse the JSON response
+            .then(data => {
+                if (data.status === "success") {
+                    // Redirect to the payment complete URL if the status is success
+                    window.location.href = data.redirect_url;
+                } else {
+                    // Redirect to the payment failed URL if the status is not success
+                    window.location.href = data.redirect_url;
+                }
+            })
+            .catch(error => console.error("Error:", error));  // Log any errors to the console
+        }
+    });
     </script>
   {% endblock content %}
 {% endblock main %}

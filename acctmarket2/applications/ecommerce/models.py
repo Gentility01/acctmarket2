@@ -330,7 +330,8 @@ class Payment(TimeBasedModel):
     def verify_payment_nowpayments(self):
         nowpayment = NowPayment()
         result = nowpayment.verify_payment(self.reference)
-        if result and result["payment_status"] == "confirmed":
+        logging.info(f"NowPayments verification result: {result}")
+        if result and result.get("payment_status") == "confirmed":
             nowpayments_amount = Decimal(result["pay_amount"])
             if nowpayments_amount == self.amount:
                 self.status = "verified"

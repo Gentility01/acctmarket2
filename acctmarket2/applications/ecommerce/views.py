@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -30,7 +30,8 @@ from acctmarket2.applications.ecommerce.models import (CartOrder,
                                                        Product, ProductImages,
                                                        ProductKey,
                                                        ProductReview, WishList)
-from acctmarket2.utils.payments import convert_to_naira, get_exchange_rate
+from acctmarket2.utils.payments import (NowPayment, convert_to_naira,
+                                        get_exchange_rate)
 from acctmarket2.utils.views import ContentManagerRequiredMixin
 
 logger = logging.getLogger(__name__)
@@ -695,29 +696,6 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 
 class NowPaymentView(View):
-    def get_supported_currencies(self):
-        headers = {
-            "x-api-key": settings.NOWPAYMENTS_API_KEY,
-        }
-        response = requests.get(
-            "https://api.nowpayments.io/v1/currencies", headers=headers
-        )
-        if response.status_code == 200:
-            return response.json()["currencies"]
-        return []
-
-    def get(self, request, order_id):
-        order = get_object_or_404(CartOrder, id=order_id, user=request.user)
-        supported_currencies = self.get_supported_currencies()
-        return render(
-            request,
-            "pages/ecommerce/create_nowpayment.html",
-            {
-                "supported_currencies": supported_currencies,
-                "order": order,
-            },
-        )
-
     def post(self, request, order_id):
         order = get_object_or_404(CartOrder, id=order_id, user=request.user)
         pay_currency = request.POST.get("pay_currency")
@@ -729,11 +707,19 @@ class NowPaymentView(View):
         # Prepare the request payload
         payload = {
             "price_amount": str(order.price),
-            "price_currency": "USD",  # Assuming the order price is in USD
+            "price_currency": "USD",
             "pay_currency": pay_currency,
-            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),  # Updated IPN URL      # noqa
+            "ipn_callback_url": request.build_absolute_uri(
+                reverse("ecommerce:ipn")
+            ),
             "order_id": str(order.id),
             "order_description": f"Order #{order.id} for user {order.user.id}",
+            "success_url": request.build_absolute_uri(
+                reverse("ecommerce:payment_complete")
+            ),
+            "cancel_url": request.build_absolute_uri(
+                reverse("ecommerce:payment_failed")
+            )
         }
 
         # Send the request to NOWPayments
@@ -741,44 +727,127 @@ class NowPaymentView(View):
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
         response = requests.post(
-            "https://api.nowpayments.io/v1/invoice", json=payload, headers=headers   # noqa
+            "https://api.nowpayments.io/v1/invoice",
+            json=payload, headers=headers
         )
 
         # Process the response
         if response.status_code == 200:
             response_data = response.json()
+            # Redirect the user to the payment page
             return redirect(response_data["invoice_url"])
         else:
             return JsonResponse(response.json(), status=response.status_code)
 
 
 # IPN (Instant Payment Notification) endpoint for NowPayments
-@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(csrf_exempt, name="dispatch")
 class IPNView(View):
     def post(self, request, *args, **kwargs):
-        data = json.loads(request.body)  # Changed to read JSON data
-        payment_reference = data.get("order_id")
+        data = json.loads(request.body)
+        order_id = data.get("order_id")
 
-        logging.info(
-            f"IPN received for payment reference: {payment_reference}"
-        )
+        logger.info(f"IPN received for order ID: {order_id}.........")
 
         try:
-            payment = get_object_or_404(Payment, reference=payment_reference)
-            if payment.verify_payment_nowpayments():  # Added verification for NowPayments                # noqa
-                # Redirect to the VerifyPaymentView
-                verify_url = reverse(
-                    "ecommerce:verify_payment", args=[payment_reference]
-                )
+            order = get_object_or_404(CartOrder, id=order_id)
+            payment = order.payment
+
+            if not payment:
                 return JsonResponse(
-                    {"status": "success", "redirect_url": verify_url}
-                )                    # noqa
-            return JsonResponse({"status": "failed"}, status=400)
+                    {"status": "error", "message": "Payment not found for order"},                 # noqa
+                    status=404
+                )
+
+            nowpayment = NowPayment()
+            payment_data = nowpayment.verify_payment(payment.reference)
+
+            if payment_data and payment_data.get("payment_status") == "confirmed":       # noqa
+                self.process_successful_payment(order, payment, request)
+                return JsonResponse({
+                    "status": "success",
+                    "redirect_url": reverse("ecommerce:payment_complete")
+                })
+            else:
+                return JsonResponse({
+                    "status": "failed",
+                    "redirect_url": reverse("ecommerce:payment_failed")
+                }, status=400)
         except Exception as e:
-            logging.error(f"IPN processing error: {e}")
+            logger.error(f"IPN processing error: {e}")
             return JsonResponse(
-                {"status": "error", "message": str(e)}, status=500
+                {"status": "error", "message": str(e)}, status=500)
+
+    def process_successful_payment(self, order, payment, request):
+        try:
+            with transaction.atomic():
+                self.assign_unique_keys_to_order(order)
+
+            purchased_product_url = request.build_absolute_uri(
+                reverse("ecommerce:purchased_products")
             )
+            send_mail(
+                "Your Purchase is Complete",
+                f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",      # noqa
+                settings.DEFAULT_FROM_EMAIL,
+                [order.user.email],
+                fail_silently=False,
+            )
+        except ValidationError as e:
+            logger.error(f"Validation error during key assignment: {e}")
+            raise
+
+    def assign_unique_keys_to_order(self, order):
+        for order_item in order.order_items.all():
+            product = order_item.product
+            quantity = order_item.quantity
+
+            available_keys = ProductKey.objects.select_for_update().filter(
+                product=product, is_used=False
+            )[:quantity]
+
+            if len(available_keys) < quantity:
+                self.handle_insufficient_keys(order_item, available_keys)
+                continue
+
+            keys_and_passwords = []
+
+            for i in range(quantity):
+                product_key = available_keys[i]
+                product_key.is_used = True
+                product_key.save()
+
+                keys_and_passwords.append({
+                    "key": product_key.key,
+                    "password": product_key.password
+                })
+
+            order_item.keys_and_passwords = keys_and_passwords
+            order_item.save()
+
+            product.quantity_in_stock -= quantity
+            if product.quantity_in_stock < 1:
+                product.visible = False
+            product.save()
+
+    def handle_insufficient_keys(self, order_item, available_keys):
+        keys_and_passwords = []
+
+        for key in available_keys:
+            key.is_used = True
+            key.save()
+
+            keys_and_passwords.append({
+                "key": key.key,
+                "password": key.password
+            })
+
+        order_item.keys_and_passwords = keys_and_passwords
+        order_item.save()
+
+        product = order_item.product
+        user = order_item.order.user
+        notify_user_insufficient_keys(user, product)
 
 
 class VerifyPaymentView(View):

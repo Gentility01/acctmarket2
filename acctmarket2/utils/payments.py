@@ -32,13 +32,24 @@ class NowPayment:
     NOWPAYMENTS_API_URL = "https://api.nowpayments.io/v1/"
 
     def create_payment(self, amount, currency, order_id, description, request):
-        url = f"{self.NOWPAYMENTS_API_URL}invoice"
+        """
+        Creates a payment invoice using the NowPayments API.
 
+        Args:
+            amount (float): The amount of the payment.
+            currency (str): The currency of the payment.
+            order_id (int): The ID of the order associated with the payment.
+            description (str): The description of the payment.
+            request (HttpRequest): The request object for making the API call.
+
+        Returns:
+            dict: The response from the API call.
+        """
+        url = f"{self.NOWPAYMENTS_API_URL}invoice"
         headers = {
             "x-api-key": self.NOWPAYMENTS_API_KEY,
             "Content-Type": "application/json",
         }
-
         data = {
             "price_amount": amount,
             "price_currency": currency,
@@ -46,7 +57,7 @@ class NowPayment:
             "order_description": description,
             "ipn_callback_url": request.build_absolute_uri(
                 reverse("ecommerce:ipn")
-            ),  # Updated IPN URL
+            ),
             "success_url": request.build_absolute_uri(
                 reverse("ecommerce:payment_complete")
             ),
@@ -58,11 +69,23 @@ class NowPayment:
         return response.json()
 
     def verify_payment(self, payment_reference):
+        """
+        Verify the payment using the NowPayments API.
+
+        Args:
+            payment_reference (str):
+            The reference of the payment to be verified.
+
+        Returns:
+            dict or None: The response from the API call
+            as a JSON object if the status code is 200,
+            otherwise None.
+        """
         headers = {
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
         response = requests.get(
-            f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}", headers=headers                          # noqa
+            f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}", headers=headers             # noqa
         )
         if response.status_code == 200:
             return response.json()
@@ -73,6 +96,23 @@ logger = logging.getLogger(__name__)
 
 
 def get_exchange_rate(target_currency="NGN"):
+    """
+    Retrieves the exchange rate for a given target
+    currency from an external API.
+
+    Args:
+        target_currency (str, optional):
+        The currency for which to retrieve the exchange rate.
+        Defaults to "NGN".
+
+    Returns:
+        Decimal: The exchange rate for the target currency.
+
+    Raises:
+        Exception: If the exchange rate cannot be retrieved
+        or the target currency is not found in the response data.
+
+    """
     url = f"{settings.EXCHANGE_RATE_API_URL}"
     headers = {
         "apikey": settings.EXCHANGE_RATE_API_KEY
