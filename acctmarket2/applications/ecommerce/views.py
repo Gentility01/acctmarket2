@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Avg, Count
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -696,6 +696,29 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 
 class NowPaymentView(View):
+    def get_supported_currencies(self):
+        headers = {
+            "x-api-key": settings.NOWPAYMENTS_API_KEY,
+        }
+        response = requests.get(
+            "https://api.nowpayments.io/v1/currencies", headers=headers
+        )
+        if response.status_code == 200:
+            return response.json()["currencies"]
+        return []
+
+    def get(self, request, order_id):
+        order = get_object_or_404(CartOrder, id=order_id, user=request.user)
+        supported_currencies = self.get_supported_currencies()
+        return render(
+            request,
+            "pages/ecommerce/create_nowpayment.html",
+            {
+                "supported_currencies": supported_currencies,
+                "order": order,
+            },
+        )
+
     def post(self, request, order_id):
         order = get_object_or_404(CartOrder, id=order_id, user=request.user)
         pay_currency = request.POST.get("pay_currency")
