@@ -608,6 +608,7 @@ class ProceedPayment(LoginRequiredMixin, TemplateView):
 class VerifyPaymentView(View):
     def get(self, request, reference, *args, **kwargs):
         payment = get_object_or_404(Payment, reference=reference)
+        verified = False
 
         if payment.order.payment_method == "paystack":
             verified = payment.verify_paystack_payment()
@@ -623,24 +624,20 @@ class VerifyPaymentView(View):
                     self.assign_unique_keys_to_order(payment.order.id)
 
                 purchased_product_url = request.build_absolute_uri(
-                    reverse("ecommerce:purchased_products"),
+                    reverse("ecommerce:purchased_products")
                 )
                 send_mail(
                     "Your Purchase is Complete",
-                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",   # noqa
-                    f"from {settings.DEFAULT_FROM_EMAIL}",
+                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",                     # noqa
+                    settings.DEFAULT_FROM_EMAIL,
                     [request.user.email],
                     fail_silently=False,
                 )
-                messages.success(
-                    request,
-                    "Verification successful. Check your mail to access the products you purchased.",  # noqa
-                )
+                messages.success(request, "Verification successful. Check your mail to access the products you purchased.")                     # noqa
                 return redirect("ecommerce:payment_complete")
             except ValidationError as e:
                 messages.error(
-                    request, f"Verification succeeded but an issue occurred: {e!s}"   # noqa
-                )
+                    request, f"Verification succeeded but an issue occurred: {e!s}")                    # noqa
                 return redirect("ecommerce:support")
         else:
             messages.error(request, "Verification failed")
@@ -654,8 +651,7 @@ class VerifyPaymentView(View):
             quantity = order_item.quantity
 
             available_keys = ProductKey.objects.select_for_update().filter(
-                product=product, is_used=False
-            )[:quantity]
+                product=product, is_used=False)[:quantity]
 
             if len(available_keys) < quantity:
                 self.handle_insufficient_keys(order_item, available_keys)
@@ -667,10 +663,10 @@ class VerifyPaymentView(View):
                 product_key = available_keys[i]
                 product_key.is_used = True
                 product_key.save()
-
-                keys_and_passwords.append(
-                    {"key": product_key.key, "password": product_key.password}
-                )
+                keys_and_passwords.append({
+                    "key": product_key.key,
+                    "password": product_key.password
+                })
 
             order_item.keys_and_passwords = keys_and_passwords
             order_item.save()
@@ -686,9 +682,9 @@ class VerifyPaymentView(View):
         for key in available_keys:
             key.is_used = True
             key.save()
-
-            keys_and_passwords.append(
-                {"key": key.key, "password": key.password})
+            keys_and_passwords.append({
+                "key": key.key, "password": key.password
+            })
 
         order_item.keys_and_passwords = keys_and_passwords
         order_item.save()
@@ -880,30 +876,26 @@ class NowPaymentView(View):
 # IPN (Instant Payment Notification) endpoint for NowPayments
 @method_decorator(csrf_exempt, name="dispatch")
 class IPNView(View):
-    @method_decorator(csrf_exempt, name="dispatch")
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
         order_id = data.get("order_id")
-
-        logger.info(f"IPN received for order ID: {order_id}")
+        logging.info(f"IPN received for order ID: {order_id}")
 
         try:
             order = get_object_or_404(CartOrder, id=order_id)
             payment = order.payment
 
             if not payment:
-                return JsonResponse(
-                    {
-                        "status": "error",
-                        "message": "Payment not found for order"
-                    },
+                return JsonResponse({
+                    "status": "error",
+                    "message": "Payment not found for order"},
                     status=404
                 )
 
             nowpayment = NowPayment()
             payment_data = nowpayment.verify_payment(payment.reference)
 
-            if payment_data and payment_data.get("payment_status") == "confirmed":               # noqa
+            if payment_data and payment_data.get("payment_status") == "confirmed":            # noqa
                 self.process_successful_payment(order, payment, request)
                 return JsonResponse({
                     "status": "success",
@@ -912,24 +904,30 @@ class IPNView(View):
             else:
                 return JsonResponse({
                     "status": "failed",
-                    "redirect_url": reverse("ecommerce:payment_failed")
-                }, status=400)
+                    "redirect_url": reverse("ecommerce:payment_failed")},
+                    status=400)
         except Exception as e:
-            logger.error(f"IPN processing error: {e}")
-            return JsonResponse(
-                {"status": "error", "message": str(e)}, status=500)
+            logging.error(f"IPN processing error: {e}")
+            return JsonResponse({
+                "status": "error", "message": str(e)
+            }, status=500)
 
     def process_successful_payment(self, order, payment, request):
         verify_payment_view = VerifyPaymentView()
         with transaction.atomic():
             verify_payment_view.assign_unique_keys_to_order(order.id)
+        order.paid_status = True
+        order.save()
+        payment.verified = True
+        payment.status = 'confirmed'
+        payment.save()
 
         purchased_product_url = request.build_absolute_uri(
-            reverse("ecommerce:purchased_products"),
+            reverse("ecommerce:purchased_products")
         )
         send_mail(
             "Your Purchase is Complete",
-            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",           # noqa
+            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",              # noqa
             settings.DEFAULT_FROM_EMAIL,
             [order.user.email],
             fail_silently=False,
