@@ -1,4 +1,4 @@
-import json
+# import json
 import logging
 from decimal import Decimal
 
@@ -14,8 +14,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+# from django.utils.decorators import method_decorator
+# from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, FormView, ListView,
                                   TemplateView, UpdateView, View)
 
@@ -30,8 +30,7 @@ from acctmarket2.applications.ecommerce.models import (CartOrder,
                                                        Product, ProductImages,
                                                        ProductKey,
                                                        ProductReview, WishList)
-from acctmarket2.utils.payments import (NowPayment, convert_to_naira,
-                                        get_exchange_rate)
+from acctmarket2.utils.payments import convert_to_naira, get_exchange_rate
 from acctmarket2.utils.views import ContentManagerRequiredMixin
 
 logger = logging.getLogger(__name__)
@@ -843,7 +842,7 @@ class NowPaymentView(View):
             "price_currency": "USD",
             "pay_currency": pay_currency,
             "ipn_callback_url": request.build_absolute_uri(
-                reverse("ecommerce:ipn")
+                reverse("ecommerce:verify_payment", args=[payment.reference])
             ),
             "order_id": str(order.id),
             "order_description": f"Order #{order.id} for user {order.user.id}",
@@ -873,65 +872,65 @@ class NowPaymentView(View):
             return JsonResponse(response.json(), status=response.status_code)
 
 
-# IPN (Instant Payment Notification) endpoint for NowPayments
-@method_decorator(csrf_exempt, name="dispatch")
-class IPNView(View):
-    def post(self, request, *args, **kwargs):
-        data = json.loads(request.body)
-        order_id = data.get("order_id")
-        logging.info(f"IPN received for order ID: {order_id}")
+# # IPN (Instant Payment Notification) endpoint for NowPayments
+# @method_decorator(csrf_exempt, name="dispatch")
+# class IPNView(View):
+#     def post(self, request, *args, **kwargs):
+#         data = json.loads(request.body)
+#         order_id = data.get("order_id")
+#         logging.info(f"IPN received for order ID: {order_id}")
 
-        try:
-            order = get_object_or_404(CartOrder, id=order_id)
-            payment = order.payment
+#         try:
+#             order = get_object_or_404(CartOrder, id=order_id)
+#             payment = order.payment
 
-            if not payment:
-                return JsonResponse({
-                    "status": "error",
-                    "message": "Payment not found for order"},
-                    status=404
-                )
+#             if not payment:
+#                 return JsonResponse({
+#                     "status": "error",
+#                     "message": "Payment not found for order"},
+#                     status=404
+#                 )
 
-            nowpayment = NowPayment()
-            payment_data = nowpayment.verify_payment(payment.reference)
+#             nowpayment = NowPayment()
+#             payment_data = nowpayment.verify_payment(payment.reference)
 
-            if payment_data and payment_data.get("payment_status") == "confirmed":            # noqa
-                self.process_successful_payment(order, payment, request)
-                return JsonResponse({
-                    "status": "success",
-                    "redirect_url": reverse("ecommerce:payment_complete")
-                })
-            else:
-                return JsonResponse({
-                    "status": "failed",
-                    "redirect_url": reverse("ecommerce:payment_failed")},
-                    status=400)
-        except Exception as e:
-            logging.error(f"IPN processing error: {e}")
-            return JsonResponse({
-                "status": "error", "message": str(e)
-            }, status=500)
+#             if payment_data and payment_data.get("payment_status") == "confirmed":            # noqa
+#                 self.process_successful_payment(order, payment, request)
+#                 return JsonResponse({
+#                     "status": "success",
+#                     "redirect_url": reverse("ecommerce:payment_complete")
+#                 })
+#             else:
+#                 return JsonResponse({
+#                     "status": "failed",
+#                     "redirect_url": reverse("ecommerce:payment_failed")},
+#                     status=400)
+#         except Exception as e:
+#             logging.error(f"IPN processing error: {e}")
+#             return JsonResponse({
+#                 "status": "error", "message": str(e)
+#             }, status=500)
 
-    def process_successful_payment(self, order, payment, request):
-        verify_payment_view = VerifyPaymentView()
-        with transaction.atomic():
-            verify_payment_view.assign_unique_keys_to_order(order.id)
-        order.paid_status = True
-        order.save()
-        payment.verified = True
-        payment.status = 'confirmed'
-        payment.save()
+#     def process_successful_payment(self, order, payment, request):
+#         verify_payment_view = VerifyPaymentView()
+#         with transaction.atomic():
+#             verify_payment_view.assign_unique_keys_to_order(order.id)
+#         order.paid_status = True
+#         order.save()
+#         payment.verified = True
+#         payment.status = 'confirmed'
+#         payment.save()
 
-        purchased_product_url = request.build_absolute_uri(
-            reverse("ecommerce:purchased_products")
-        )
-        send_mail(
-            "Your Purchase is Complete",
-            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",              # noqa
-            settings.DEFAULT_FROM_EMAIL,
-            [order.user.email],
-            fail_silently=False,
-        )
+#         purchased_product_url = request.build_absolute_uri(
+#             reverse("ecommerce:purchased_products")
+#         )
+#         send_mail(
+#             "Your Purchase is Complete",
+#             f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",              # noqa
+#             settings.DEFAULT_FROM_EMAIL,
+#             [order.user.email],
+#             fail_silently=False,
+#         )
 
 
 class PaymentCompleteView(LoginRequiredMixin, TemplateView):

@@ -133,5 +133,5 @@ urlpatterns = [
         views.NowPaymentView.as_view(),
         name="create_nowpayment",
     ),
-    path("ipn/", views.IPNView.as_view(), name="ipn"),
+    # path("ipn/", views.IPNView.as_view(), name="ipn"),
 ]
