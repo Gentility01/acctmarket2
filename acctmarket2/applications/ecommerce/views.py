@@ -607,26 +607,8 @@ class ProceedPayment(LoginRequiredMixin, TemplateView):
 
 class VerifyPaymentView(View):
     def get(self, request, reference, *args, **kwargs):
-        """
-        Handles the verification of a payment based on the payment method,
-        assigns unique keys to the order,
-        sends a confirmation email to the user, and redirects to the
-        appropriate page based on the verification result.
-
-        Parameters:
-            request: The HTTP request object.
-            reference: The reference for the payment to be verified.
-            *args: Additional positional arguments.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            A redirection to different pages based on the verification status
-            of the payment.
-        """
         payment = get_object_or_404(Payment, reference=reference)
 
-        # Determine the payment method from the order"s payment_method field
-        #  and verify payment
         if payment.order.payment_method == "paystack":
             verified = payment.verify_paystack_payment()
         elif payment.order.payment_method == "nowpayments":
@@ -635,19 +617,14 @@ class VerifyPaymentView(View):
             messages.error(request, "Unknown payment method")
             return redirect("ecommerce:payment_failed")
 
-        if verified:  # If payment is verified
+        if verified:
             try:
-                # Use a transaction to ensure atomicity
                 with transaction.atomic():
-                    self.assign_unique_keys_to_order(
-                        payment.order.id
-                    )  # Assign unique keys to the order
+                    self.assign_unique_keys_to_order(payment.order.id)
 
-                # Build the URL for the purchased products page
                 purchased_product_url = request.build_absolute_uri(
                     reverse("ecommerce:purchased_products"),
                 )
-                # Send an email to the user confirming the purchase
                 send_mail(
                     "Your Purchase is Complete",
                     f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",   # noqa
@@ -658,50 +635,18 @@ class VerifyPaymentView(View):
                 messages.success(
                     request,
                     "Verification successful. Check your mail to access the products you purchased.",  # noqa
-                )  # Show success message
-                return redirect(
-                    "ecommerce:payment_complete"
-                )  # Redirect to payment complete page
-            except ValidationError as e:  # Catch validation errors
+                )
+                return redirect("ecommerce:payment_complete")
+            except ValidationError as e:
                 messages.error(
                     request, f"Verification succeeded but an issue occurred: {e!s}"   # noqa
-                )  # Show error message
+                )
                 return redirect("ecommerce:support")
         else:
-            messages.error(
-                request, "Verification failed"
-            )  # Show error message if verification failed
-            return redirect(
-                "ecommerce:payment_failed"
-            )  # Redirect to payment failed page
+            messages.error(request, "Verification failed")
+            return redirect("ecommerce:payment_failed")
 
     def assign_unique_keys_to_order(self, order_id):
-        """
-        Assigns unique keys and passwords to the order items in a CartOrder.
-
-        Args:
-            order_id (int): The ID of the CartOrder.
-
-        Returns:
-            None
-
-        Raises:
-            Http404: If the CartOrder with the given ID does not exist.
-
-        This function retrieves the CartOrder with the given ID
-        and iterates over its order items.
-        For each order item, it retrieves the corresponding product
-        and quantity.
-        It then filters the ProductKey objects to find available keys
-        for the product that have not been used yet.
-        If there are not enough available keys, it handles the insufficient
-        keys situation and continues to the next order item.
-        Otherwise, it assigns the available keys to the order item and updates
-        the order item's keys_and_passwords field.
-        It also updates the product's quantity_in_stock and visibility
-        based on the quantity of keys assigned.
-        Finally, it saves the changes to the order item and product.
-        """
         order = get_object_or_404(CartOrder, id=order_id)
 
         for order_item in order.order_items.all():
@@ -736,26 +681,6 @@ class VerifyPaymentView(View):
             product.save()
 
     def handle_insufficient_keys(self, order_item, available_keys):
-        """
-        Handle the case when there are insufficient keys
-        available for an order item.
-
-        Args:
-            order_item (OrderItem): The order item for which the keys
-            are being assigned.
-            available_keys (QuerySet): The available keys for the order item.
-
-        Returns:
-            None
-
-        Raises:
-            None
-
-        This function assigns the available keys to the order item and updates
-        the order item's keys_and_passwords field. It also saves the changes
-        to the order item. Additionally, it notifies the user that there are
-        insufficient keys for the product associated with the order item.
-        """
         keys_and_passwords = []
 
         for key in available_keys:
@@ -906,6 +831,16 @@ class NowPaymentView(View):
         order.payment_method = "nowpayments"
         order.save()
 
+        # Create a payment object
+        payment, created = Payment.objects.get_or_create(
+            order=order,
+            defaults={
+                "user": request.user,
+                "amount": order.price,
+                "reference": Payment.generate_unique_reference()
+            },
+        )
+
         # Prepare the request payload
         payload = {
             "price_amount": str(order.price),
@@ -945,6 +880,7 @@ class NowPaymentView(View):
 # IPN (Instant Payment Notification) endpoint for NowPayments
 @method_decorator(csrf_exempt, name="dispatch")
 class IPNView(View):
+    @method_decorator(csrf_exempt, name="dispatch")
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
         order_id = data.get("order_id")
@@ -968,11 +904,7 @@ class IPNView(View):
             payment_data = nowpayment.verify_payment(payment.reference)
 
             if payment_data and payment_data.get("payment_status") == "confirmed":               # noqa
-                verify_payment_view = VerifyPaymentView()
-                with transaction.atomic():
-                    verify_payment_view.process_successful_payment(
-                        order, payment, request
-                    )
+                self.process_successful_payment(order, payment, request)
                 return JsonResponse({
                     "status": "success",
                     "redirect_url": reverse("ecommerce:payment_complete")
@@ -989,7 +921,9 @@ class IPNView(View):
 
     def process_successful_payment(self, order, payment, request):
         verify_payment_view = VerifyPaymentView()
-        verify_payment_view.assign_unique_keys_to_order(order.id)
+        with transaction.atomic():
+            verify_payment_view.assign_unique_keys_to_order(order.id)
+
         purchased_product_url = request.build_absolute_uri(
             reverse("ecommerce:purchased_products"),
         )

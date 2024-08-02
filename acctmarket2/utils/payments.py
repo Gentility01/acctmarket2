@@ -5,6 +5,8 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 
+logger = logging.getLogger(__name__)
+
 
 class PayStack:
     PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
@@ -90,9 +92,6 @@ class NowPayment:
         if response.status_code == 200:
             return response.json()
         return None
-
-
-logger = logging.getLogger(__name__)
 
 
 def get_exchange_rate(target_currency="NGN"):

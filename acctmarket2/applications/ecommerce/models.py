@@ -345,6 +345,13 @@ class Payment(TimeBasedModel):
         self.save()
         return False
 
+    @staticmethod
+    def generate_unique_reference():
+        while True:
+            reference = str(uuid.uuid4())
+            if not Payment.objects.filter(reference=reference).exists():
+                return reference
+
 
 class ProductReview(TimeBasedModel):
     user = auto_prefetch.ForeignKey(
