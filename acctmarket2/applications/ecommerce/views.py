@@ -605,6 +605,185 @@ class ProceedPayment(LoginRequiredMixin, TemplateView):
                         order_id=context["order_id"])
 
 
+class VerifyPaymentView(View):
+    def get(self, request, reference, *args, **kwargs):
+        """
+        Handles the verification of a payment based on the payment method,
+        assigns unique keys to the order,
+        sends a confirmation email to the user, and redirects to the
+        appropriate page based on the verification result.
+
+        Parameters:
+            request: The HTTP request object.
+            reference: The reference for the payment to be verified.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            A redirection to different pages based on the verification status
+            of the payment.
+        """
+        payment = get_object_or_404(Payment, reference=reference)
+
+        # Determine the payment method from the order"s payment_method field
+        #  and verify payment
+        if payment.order.payment_method == "paystack":
+            verified = payment.verify_paystack_payment()
+        elif payment.order.payment_method == "nowpayments":
+            verified = payment.verify_payment_nowpayments()
+        else:
+            messages.error(request, "Unknown payment method")
+            return redirect("ecommerce:payment_failed")
+
+        if verified:  # If payment is verified
+            try:
+                # Use a transaction to ensure atomicity
+                with transaction.atomic():
+                    self.assign_unique_keys_to_order(
+                        payment.order.id
+                    )  # Assign unique keys to the order
+
+                # Build the URL for the purchased products page
+                purchased_product_url = request.build_absolute_uri(
+                    reverse("ecommerce:purchased_products"),
+                )
+                # Send an email to the user confirming the purchase
+                send_mail(
+                    "Your Purchase is Complete",
+                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",   # noqa
+                    f"from {settings.DEFAULT_FROM_EMAIL}",
+                    [request.user.email],
+                    fail_silently=False,
+                )
+                messages.success(
+                    request,
+                    "Verification successful. Check your mail to access the products you purchased.",  # noqa
+                )  # Show success message
+                return redirect(
+                    "ecommerce:payment_complete"
+                )  # Redirect to payment complete page
+            except ValidationError as e:  # Catch validation errors
+                messages.error(
+                    request, f"Verification succeeded but an issue occurred: {e!s}"   # noqa
+                )  # Show error message
+                return redirect("ecommerce:support")
+        else:
+            messages.error(
+                request, "Verification failed"
+            )  # Show error message if verification failed
+            return redirect(
+                "ecommerce:payment_failed"
+            )  # Redirect to payment failed page
+
+    def assign_unique_keys_to_order(self, order_id):
+        """
+        Assigns unique keys and passwords to the order items in a CartOrder.
+
+        Args:
+            order_id (int): The ID of the CartOrder.
+
+        Returns:
+            None
+
+        Raises:
+            Http404: If the CartOrder with the given ID does not exist.
+
+        This function retrieves the CartOrder with the given ID
+        and iterates over its order items.
+        For each order item, it retrieves the corresponding product
+        and quantity.
+        It then filters the ProductKey objects to find available keys
+        for the product that have not been used yet.
+        If there are not enough available keys, it handles the insufficient
+        keys situation and continues to the next order item.
+        Otherwise, it assigns the available keys to the order item and updates
+        the order item's keys_and_passwords field.
+        It also updates the product's quantity_in_stock and visibility
+        based on the quantity of keys assigned.
+        Finally, it saves the changes to the order item and product.
+        """
+        order = get_object_or_404(CartOrder, id=order_id)
+
+        for order_item in order.order_items.all():
+            product = order_item.product
+            quantity = order_item.quantity
+
+            available_keys = ProductKey.objects.select_for_update().filter(
+                product=product, is_used=False
+            )[:quantity]
+
+            if len(available_keys) < quantity:
+                self.handle_insufficient_keys(order_item, available_keys)
+                continue
+
+            keys_and_passwords = []
+
+            for i in range(quantity):
+                product_key = available_keys[i]
+                product_key.is_used = True
+                product_key.save()
+
+                keys_and_passwords.append(
+                    {"key": product_key.key, "password": product_key.password}
+                )
+
+            order_item.keys_and_passwords = keys_and_passwords
+            order_item.save()
+
+            product.quantity_in_stock -= quantity
+            if product.quantity_in_stock < 1:
+                product.visible = False
+            product.save()
+
+    def handle_insufficient_keys(self, order_item, available_keys):
+        """
+        Handle the case when there are insufficient keys
+        available for an order item.
+
+        Args:
+            order_item (OrderItem): The order item for which the keys
+            are being assigned.
+            available_keys (QuerySet): The available keys for the order item.
+
+        Returns:
+            None
+
+        Raises:
+            None
+
+        This function assigns the available keys to the order item and updates
+        the order item's keys_and_passwords field. It also saves the changes
+        to the order item. Additionally, it notifies the user that there are
+        insufficient keys for the product associated with the order item.
+        """
+        keys_and_passwords = []
+
+        for key in available_keys:
+            key.is_used = True
+            key.save()
+
+            keys_and_passwords.append(
+                {"key": key.key, "password": key.password})
+
+        order_item.keys_and_passwords = keys_and_passwords
+        order_item.save()
+
+        product = order_item.product
+        user = order_item.order.user
+        notify_user_insufficient_keys(user, product)
+
+
+def notify_user_insufficient_keys(user, product):
+    # Send notification to user about the insufficient keys for the product
+    send_mail(
+        "Insufficient Product Keys",
+        f"Dear {user.username},\n\nWe regret to inform you that there are insufficient keys available for the product '{product.title}'. Our team is working on resolving this issue.\n\nThank you for your understanding.",  # noqa
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=False,
+    )
+
+
 class InitiatePaymentView(LoginRequiredMixin, TemplateView):
     template_name = "pages/ecommerce/initiate_payment.html"
 
@@ -770,7 +949,7 @@ class IPNView(View):
         data = json.loads(request.body)
         order_id = data.get("order_id")
 
-        logger.info(f"IPN received for order ID: {order_id}.........")
+        logger.info(f"IPN received for order ID: {order_id}")
 
         try:
             order = get_object_or_404(CartOrder, id=order_id)
@@ -778,15 +957,22 @@ class IPNView(View):
 
             if not payment:
                 return JsonResponse(
-                    {"status": "error", "message": "Payment not found for order"},                 # noqa
+                    {
+                        "status": "error",
+                        "message": "Payment not found for order"
+                    },
                     status=404
                 )
 
             nowpayment = NowPayment()
             payment_data = nowpayment.verify_payment(payment.reference)
 
-            if payment_data and payment_data.get("payment_status") == "confirmed":       # noqa
-                self.process_successful_payment(order, payment, request)
+            if payment_data and payment_data.get("payment_status") == "confirmed":               # noqa
+                verify_payment_view = VerifyPaymentView()
+                with transaction.atomic():
+                    verify_payment_view.process_successful_payment(
+                        order, payment, request
+                    )
                 return JsonResponse({
                     "status": "success",
                     "redirect_url": reverse("ecommerce:payment_complete")
@@ -802,208 +988,18 @@ class IPNView(View):
                 {"status": "error", "message": str(e)}, status=500)
 
     def process_successful_payment(self, order, payment, request):
-        try:
-            with transaction.atomic():
-                self.assign_unique_keys_to_order(order)
-
-            purchased_product_url = request.build_absolute_uri(
-                reverse("ecommerce:purchased_products")
-            )
-            send_mail(
-                "Your Purchase is Complete",
-                f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",      # noqa
-                settings.DEFAULT_FROM_EMAIL,
-                [order.user.email],
-                fail_silently=False,
-            )
-        except ValidationError as e:
-            logger.error(f"Validation error during key assignment: {e}")
-            raise
-
-    def assign_unique_keys_to_order(self, order):
-        for order_item in order.order_items.all():
-            product = order_item.product
-            quantity = order_item.quantity
-
-            available_keys = ProductKey.objects.select_for_update().filter(
-                product=product, is_used=False
-            )[:quantity]
-
-            if len(available_keys) < quantity:
-                self.handle_insufficient_keys(order_item, available_keys)
-                continue
-
-            keys_and_passwords = []
-
-            for i in range(quantity):
-                product_key = available_keys[i]
-                product_key.is_used = True
-                product_key.save()
-
-                keys_and_passwords.append({
-                    "key": product_key.key,
-                    "password": product_key.password
-                })
-
-            order_item.keys_and_passwords = keys_and_passwords
-            order_item.save()
-
-            product.quantity_in_stock -= quantity
-            if product.quantity_in_stock < 1:
-                product.visible = False
-            product.save()
-
-    def handle_insufficient_keys(self, order_item, available_keys):
-        keys_and_passwords = []
-
-        for key in available_keys:
-            key.is_used = True
-            key.save()
-
-            keys_and_passwords.append({
-                "key": key.key,
-                "password": key.password
-            })
-
-        order_item.keys_and_passwords = keys_and_passwords
-        order_item.save()
-
-        product = order_item.product
-        user = order_item.order.user
-        notify_user_insufficient_keys(user, product)
-
-
-class VerifyPaymentView(View):
-    def get(self, request, reference, *args, **kwargs):
-        """
-        Handles the verification of a payment based on the payment method,
-        assigns unique keys to the order,
-        sends a confirmation email to the user, and redirects to the
-        appropriate page based on the verification result.
-
-        Parameters:
-            request: The HTTP request object.
-            reference: The reference for the payment to be verified.
-            *args: Additional positional arguments.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            A redirection to different pages based on the verification status
-            of the payment.
-        """
-        payment = get_object_or_404(Payment, reference=reference)
-
-        # Determine the payment method from the order"s payment_method field
-        #  and verify payment
-        if payment.order.payment_method == "paystack":
-            verified = payment.verify_paystack_payment()
-        elif payment.order.payment_method == "nowpayments":
-            verified = payment.verify_payment_nowpayments()
-        else:
-            messages.error(request, "Unknown payment method")
-            return redirect("ecommerce:payment_failed")
-
-        if verified:  # If payment is verified
-            try:
-                # Use a transaction to ensure atomicity
-                with transaction.atomic():
-                    self.assign_unique_keys_to_order(
-                        payment.order.id
-                    )  # Assign unique keys to the order
-
-                # Build the URL for the purchased products page
-                purchased_product_url = request.build_absolute_uri(
-                    reverse("ecommerce:purchased_products"),
-                )
-                # Send an email to the user confirming the purchase
-                send_mail(
-                    "Your Purchase is Complete",
-                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",   # noqa
-                    f"from {settings.DEFAULT_FROM_EMAIL}",
-                    [request.user.email],
-                    fail_silently=False,
-                )
-                messages.success(
-                    request,
-                    "Verification successful. Check your mail to access the products you purchased.",  # noqa
-                )  # Show success message
-                return redirect(
-                    "ecommerce:payment_complete"
-                )  # Redirect to payment complete page
-            except ValidationError as e:  # Catch validation errors
-                messages.error(
-                    request, f"Verification succeeded but an issue occurred: {e!s}"   # noqa
-                )  # Show error message
-                return redirect("ecommerce:support")
-        else:
-            messages.error(
-                request, "Verification failed"
-            )  # Show error message if verification failed
-            return redirect(
-                "ecommerce:payment_failed"
-            )  # Redirect to payment failed page
-
-    def assign_unique_keys_to_order(self, order_id):
-        order = get_object_or_404(CartOrder, id=order_id)
-
-        for order_item in order.order_items.all():
-            product = order_item.product
-            quantity = order_item.quantity
-
-            available_keys = ProductKey.objects.select_for_update().filter(
-                product=product, is_used=False
-            )[:quantity]
-
-            if len(available_keys) < quantity:
-                self.handle_insufficient_keys(order_item, available_keys)
-                continue
-
-            keys_and_passwords = []
-
-            for i in range(quantity):
-                product_key = available_keys[i]
-                product_key.is_used = True
-                product_key.save()
-
-                keys_and_passwords.append(
-                    {"key": product_key.key, "password": product_key.password}
-                )
-
-            order_item.keys_and_passwords = keys_and_passwords
-            order_item.save()
-
-            product.quantity_in_stock -= quantity
-            if product.quantity_in_stock < 1:
-                product.visible = False
-            product.save()
-
-    def handle_insufficient_keys(self, order_item, available_keys):
-        keys_and_passwords = []
-
-        for key in available_keys:
-            key.is_used = True
-            key.save()
-
-            keys_and_passwords.append(
-                {"key": key.key, "password": key.password})
-
-        order_item.keys_and_passwords = keys_and_passwords
-        order_item.save()
-
-        product = order_item.product
-        user = order_item.order.user
-        notify_user_insufficient_keys(user, product)
-
-
-def notify_user_insufficient_keys(user, product):
-    # Send notification to user about the insufficient keys for the product
-    send_mail(
-        "Insufficient Product Keys",
-        f"Dear {user.username},\n\nWe regret to inform you that there are insufficient keys available for the product '{product.title}'. Our team is working on resolving this issue.\n\nThank you for your understanding.",  # noqa
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False,
-    )
+        verify_payment_view = VerifyPaymentView()
+        verify_payment_view.assign_unique_keys_to_order(order.id)
+        purchased_product_url = request.build_absolute_uri(
+            reverse("ecommerce:purchased_products"),
+        )
+        send_mail(
+            "Your Purchase is Complete",
+            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",           # noqa
+            settings.DEFAULT_FROM_EMAIL,
+            [order.user.email],
+            fail_silently=False,
+        )
 
 
 class PaymentCompleteView(LoginRequiredMixin, TemplateView):
