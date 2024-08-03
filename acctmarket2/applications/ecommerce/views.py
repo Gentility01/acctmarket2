@@ -848,7 +848,10 @@ class NowPaymentView(View):
             "order_id": str(order.id),
             "order_description": f"Order #{order.id} for user {order.user.id}",
             "success_url": request.build_absolute_uri(
-                reverse("ecommerce:payment_complete")
+                reverse(
+                    "ecommerce:payment_complete",
+                    kwargs={"order_id": order.id}
+                )
             ),
             "cancel_url": request.build_absolute_uri(
                 reverse("ecommerce:payment_failed")
@@ -899,7 +902,10 @@ class IPNView(View):
                 self.process_successful_payment(order, payment, request)
                 return JsonResponse({
                     "status": "success",
-                    "redirect_url": reverse("ecommerce:payment_complete")
+                    "redirect_url": reverse(
+                        "ecommerce:payment_complete",
+                        kwargs={"order_id": order.id}
+                    )
                 })
             else:
                 return JsonResponse({
@@ -927,7 +933,7 @@ class IPNView(View):
         )
         send_mail(
             "Your Purchase is Complete",
-            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",              # noqa
+            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",             # noqa
             settings.DEFAULT_FROM_EMAIL,
             [order.user.email],
             fail_silently=False,
