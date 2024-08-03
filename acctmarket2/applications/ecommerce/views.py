@@ -995,7 +995,7 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
 
         if cart_data_obj:
             for item in cart_data_obj.values():
-                cart_total_amount += int(item["quantity"]) * Decimal(item["price"])  # noqa
+                cart_total_amount += int(item["quantity"]) * Decimal(item["price"])                 # noqa
 
         context["cart_data"] = cart_data_obj
         context["totalcartitems"] = len(cart_data_obj)
@@ -1008,9 +1008,10 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         # Check if the payment method is NowPayments
         # and the payment is not verified
         order_id = self.kwargs.get("order_id")
+        logging.debug(f"Order ID: {order_id}")
         order = get_object_or_404(
-            CartOrder, id=order_id,
-            user=self.request.user
+            CartOrder,
+            id=order_id, user=self.request.user
         )
         payment = order.payment
 
