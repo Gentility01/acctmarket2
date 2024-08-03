@@ -2,7 +2,7 @@
 from .base import *  # noqa
 from .base import DATABASES, env
 
-# DEBUG = True
+DEBUG = True
 # GENERAL
 # ------------------------------------------------------------------------------
 SECRET_KEY = env("DJANGO_SECRET_KEY")
