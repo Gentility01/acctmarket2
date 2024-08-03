@@ -133,5 +133,10 @@ urlpatterns = [
         views.NowPaymentView.as_view(),
         name="create_nowpayment",
     ),
+    path(
+        "complete-nowpayment-verification/",
+        views.CompleteNowPaymentVerificationView.as_view(),
+        name="complete_nowpayment_verification"
+    ),
     path("ipn/", views.IPNView.as_view(), name="ipn"),
 ]
