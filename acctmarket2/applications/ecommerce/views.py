@@ -868,7 +868,7 @@ class NowPaymentView(View):
         #     "https://api.nowpayments.io/v1/invoice",
         #     json=payload, headers=headers
         # )
-        response = requests.get(
+        response = requests.post(
             "https://api-sandbox.nowpayments.io/v1/currencies",
             json=payload, headers=headers
         )
