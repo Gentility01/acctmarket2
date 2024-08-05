@@ -864,8 +864,12 @@ class NowPaymentView(View):
         headers = {
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
-        response = requests.post(
-            "https://api.nowpayments.io/v1/invoice",
+        # response = requests.post(
+        #     "https://api.nowpayments.io/v1/invoice",
+        #     json=payload, headers=headers
+        # )
+        response = requests.get(
+            "https://api-sandbox.nowpayments.io/v1/currencies",
             json=payload, headers=headers
         )
 
