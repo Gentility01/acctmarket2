@@ -94,7 +94,7 @@ urlpatterns = [
         name="proceed_payment"
     ),
     path(
-        "payment-complete",
+        "payment-complete/",
         views.PaymentCompleteView.as_view(),
         name="payment_complete",
     ),
