@@ -1066,8 +1066,13 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         cart_total_amount = Decimal("0.00")
 
-        payment_reference = self.request.session.get("payment_reference")
-        payment_method = self.request.session.get("payment_method")
+        # Fetch the CartOrder and Payment from the database
+        order_id = self.request.GET.get("order_id")
+        payment_reference = self.request.GET.get("payment_reference")
+        order = get_object_or_404(
+            CartOrder, id=order_id, user=self.request.user)
+        payment = get_object_or_404(
+            Payment, order=order, reference=payment_reference)
 
         cart_data_obj = self.request.session.get("cart_data_obj", {})
 
@@ -1079,20 +1084,12 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         context["cart_data"] = cart_data_obj
         context["totalcartitems"] = len(cart_data_obj)
         context["cart_total_amount"] = cart_total_amount
-
-        # Add payment method and reference to context
         context["payment_reference"] = payment_reference
-        context["payment_method"] = payment_method
+        context["payment_method"] = payment.payment_method
 
         # Check if the verification button should be shown
-        if payment_method == "nowpayments" and payment_reference:
-            payment = get_object_or_404(Payment, reference=payment_reference)
-            if not payment.verified:
-                context["show_verification_button"] = True
-            else:
-                context["show_verification_button"] = False
-        else:
-            context["show_verification_button"] = False
+        if payment.payment_method == "nowpayments" and not payment.verified:
+            context["show_verification_button"] = True
 
         # Clear the session cart data
         if "cart_data_obj" in self.request.session:
