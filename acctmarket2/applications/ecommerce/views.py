@@ -617,7 +617,6 @@ class VerifyPaymentView(View):
             # Explicitly update the payment status if using NowPayments
             if verified:
                 payment.status = "verified"  # Update status to verified
-                payment
                 payment.save()
         else:
             messages.error(request, "Unknown payment method")
@@ -801,7 +800,7 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 
 class VerifyNowPaymentView(View):
-    def get(self, request, reference, *args, **kwargs):
+    def post(self, request, reference, *args, **kwargs):
         payment = get_object_or_404(Payment, reference=reference)
         verified = payment.verify_payment_nowpayments()
 
@@ -815,14 +814,14 @@ class VerifyNowPaymentView(View):
                 )
                 send_mail(
                     "Your Purchase is Complete",
-                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",    # noqa
+                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",                           # noqa
                     settings.DEFAULT_FROM_EMAIL,
                     [request.user.email],
                     fail_silently=False,
                 )
                 messages.success(
                     request,
-                    "Verification successful. Check your mail to access the products you purchased."                   # noqa
+                    "Verification successful. Check your mail to access the products you purchased."          # noqa
                 )
                 return redirect("ecommerce:payment_complete")
             except ValidationError as e:
@@ -1038,54 +1037,28 @@ class IPNView(View):
         )
 
 
-class CompleteNowPaymentVerificationView(View):
-    def post(self, request, *args, **kwargs):
-        order_id = request.POST.get("order_id")
-        order = get_object_or_404(CartOrder, id=order_id, user=request.user)
-        payment = order.payment
+class PaymentCompleteView(LoginRequiredMixin, TemplateView):
+    template_name = "pages/ecommerce/payment_complete.html"
 
-        if order.payment_method == "nowpayments" and not payment.verified:
-            if payment.verify_payment_nowpayments():
-                verify_payment_view = VerifyPaymentView()
-                try:
-                    with transaction.atomic():
-                        verify_payment_view.assign_unique_keys_to_order(order.id)                    # noqa
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart_total_amount = Decimal("0.00")
 
-                    order.paid_status = True
-                    order.save()
-                    payment.verified = True
-                    payment.status = 'confirmed'
-                    payment.save()
+        cart_data_obj = self.request.session.get("cart_data_obj", {})
 
-                    purchased_product_url = request.build_absolute_uri(
-                        reverse("ecommerce:purchased_products")
-                    )
-                    send_mail(
-                        "Your Purchase is Complete",
-                        f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",            # noqa
-                        settings.DEFAULT_FROM_EMAIL,
-                        [order.user.email],
-                        fail_silently=False,
-                    )
-                    messages.success(
-                        request,
-                        "Verification successful. Check your mail to access the products you purchased."              # noqa
-                    )
-                except ValidationError as e:
-                    messages.error(
-                        request, f"Verification succeeded but an issue occurred: {e!s}"                                 # noqa
-                    )
-            else:
-                messages.error(
-                    request,
-                    "Verification failed. Payment status not confirmed."
-                )
-        else:
-            messages.error(
-                request, "Verification failed or already completed."
-            )
+        if cart_data_obj:
+            for item in cart_data_obj.values():
+                cart_total_amount += int(item["quantity"]) * Decimal(item["price"])                 # noqa
 
-        return redirect("ecommerce:payment_complete",  order_id=order_id)
+        context["cart_data"] = cart_data_obj
+        context["totalcartitems"] = len(cart_data_obj)
+        context["cart_total_amount"] = cart_total_amount
+
+        # Clear the session cart data
+        if "cart_data_obj" in self.request.session:
+            del self.request.session["cart_data_obj"]
+
+        return context
 
 
 class PaymentFailedView(LoginRequiredMixin, TemplateView):
