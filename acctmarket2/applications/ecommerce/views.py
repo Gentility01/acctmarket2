@@ -833,14 +833,14 @@ class VerifyNowPaymentView(View):
                     )
                     send_mail(
                         "Your Purchase is Complete",
-                        f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",     # noqa
+                        f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",                  # noqa
                         settings.DEFAULT_FROM_EMAIL,
                         [request.user.email],
                         fail_silently=False,
                     )
                     messages.success(
                         request,
-                        "Verification successful. Check your email to access the products you purchased."           # noqa
+                        "Verification successful. Check your email to access the products you purchased."            # noqa
                     )
                     return redirect("ecommerce:payment_complete")
                 except Exception as e:
@@ -1066,6 +1066,9 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         cart_total_amount = Decimal("0.00")
 
+        payment_reference = self.request.session.get("payment_reference")
+        payment_method = self.request.session.get("payment_method")
+
         cart_data_obj = self.request.session.get("cart_data_obj", {})
 
         if cart_data_obj:
@@ -1075,6 +1078,18 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         context["cart_data"] = cart_data_obj
         context["totalcartitems"] = len(cart_data_obj)
         context["cart_total_amount"] = cart_total_amount
+
+        # Add payment method and reference to context
+        context["payment_reference"] = payment_reference
+        context["payment_method"] = payment_method
+
+        # Check if the verification button should be shown
+        if payment_method == "nowpayments":
+            payment = Payment.objects.filter(
+                reference=payment_reference
+            ).first()
+            if payment and not payment.verified:
+                context["show_verification_button"] = True
 
         # Clear the session cart data
         if "cart_data_obj" in self.request.session:
