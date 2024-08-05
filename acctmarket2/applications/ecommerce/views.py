@@ -987,7 +987,7 @@ class CompleteNowPaymentVerificationView(View):
                 request, "Verification failed or already completed."
             )
 
-        return redirect("ecommerce:payment_complete")
+        return redirect("ecommerce:payment_complete",  order_id=order_id)
 
 
 class PaymentCompleteView(LoginRequiredMixin, TemplateView):
