@@ -617,6 +617,7 @@ class VerifyPaymentView(View):
             # Explicitly update the payment status if using NowPayments
             if verified:
                 payment.status = "verified"  # Update status to verified
+                payment
                 payment.save()
         else:
             messages.error(request, "Unknown payment method")
@@ -799,6 +800,93 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
             return redirect("ecommerce:checkout")    # noqa
 
 
+class VerifyNowPaymentView(View):
+    def get(self, request, reference, *args, **kwargs):
+        payment = get_object_or_404(Payment, reference=reference)
+        verified = payment.verify_payment_nowpayments()
+
+        if verified:
+            try:
+                with transaction.atomic():
+                    self.assign_unique_keys_to_order(payment.order.id)
+
+                purchased_product_url = request.build_absolute_uri(
+                    reverse("ecommerce:purchased_products")
+                )
+                send_mail(
+                    "Your Purchase is Complete",
+                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",    # noqa
+                    settings.DEFAULT_FROM_EMAIL,
+                    [request.user.email],
+                    fail_silently=False,
+                )
+                messages.success(
+                    request,
+                    "Verification successful. Check your mail to access the products you purchased."                   # noqa
+                )
+                return redirect("ecommerce:payment_complete")
+            except ValidationError as e:
+                messages.error(
+                    request,
+                    f"Verification succeeded but an issue occurred: {e!s}"
+                )
+                return redirect("ecommerce:support")
+        else:
+            messages.error(request, "Verification failed")
+            return redirect("ecommerce:payment_failed")
+
+    def assign_unique_keys_to_order(self, order_id):
+        order = get_object_or_404(CartOrder, id=order_id)
+
+        for order_item in order.order_items.all():
+            product = order_item.product
+            quantity = order_item.quantity
+
+            available_keys = ProductKey.objects.select_for_update().filter(
+                product=product, is_used=False)[:quantity]
+
+            if len(available_keys) < quantity:
+                self.handle_insufficient_keys(order_item, available_keys)
+                continue
+
+            keys_and_passwords = []
+
+            for i in range(quantity):
+                product_key = available_keys[i]
+                product_key.is_used = True
+                product_key.save()
+                keys_and_passwords.append({
+                    "key": product_key.key,
+                    "password": product_key.password
+                })
+
+            order_item.keys_and_passwords = keys_and_passwords
+            order_item.save()
+
+            product.quantity_in_stock -= quantity
+            if product.quantity_in_stock < 1:
+                product.visible = False
+            product.save()
+
+    def handle_insufficient_keys(self, order_item, available_keys):
+        keys_and_passwords = []
+
+        for key in available_keys:
+            key.is_used = True
+            key.save()
+            keys_and_passwords.append({
+                "key": key.key,
+                "password": key.password
+            })
+
+        order_item.keys_and_passwords = keys_and_passwords
+        order_item.save()
+
+        product = order_item.product
+        user = order_item.order.user
+        notify_user_insufficient_keys(user, product)
+
+
 class NowPaymentView(View):
     def get_supported_currencies(self):
         headers = {
@@ -896,7 +984,7 @@ class IPNView(View):
 
         try:
             order = get_object_or_404(CartOrder, id=order_id)
-            payment = get_object_or_404(Payment, order=order)
+            payment = order.payment
 
             if not payment:
                 return JsonResponse({
@@ -905,13 +993,10 @@ class IPNView(View):
                     status=404
                 )
 
-            # Use NowPayment instance to verify the payment
             nowpayment = NowPayment()
-            payment_verified = nowpayment.verify_payment(payment.reference)
+            payment_data = nowpayment.verify_payment(payment.reference)
 
-            if payment_verified and payment_verified.get(
-                "payment_status"
-            ) == "confirmed":
+            if payment_data and payment_data.get("payment_status") == "confirmed":            # noqa
                 self.process_successful_payment(order, payment, request)
                 return JsonResponse({
                     "status": "success",
@@ -932,13 +1017,13 @@ class IPNView(View):
             }, status=500)
 
     def process_successful_payment(self, order, payment, request):
-        # Make sure to use the correct method to assign unique keys and update order status                     # noqa
+        verify_payment_view = VerifyPaymentView()
         with transaction.atomic():
-            VerifyPaymentView().assign_unique_keys_to_order(order.id)
+            verify_payment_view.assign_unique_keys_to_order(order.id)
         order.paid_status = True
         order.save()
         payment.verified = True
-        payment.status = 'verified'  # Ensure status is set to 'verified'
+        payment.status = 'confirmed'
         payment.save()
 
         purchased_product_url = request.build_absolute_uri(
@@ -946,7 +1031,7 @@ class IPNView(View):
         )
         send_mail(
             "Your Purchase is Complete",
-            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",          # noqa
+            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",             # noqa
             settings.DEFAULT_FROM_EMAIL,
             [order.user.email],
             fail_silently=False,
@@ -1001,30 +1086,6 @@ class CompleteNowPaymentVerificationView(View):
             )
 
         return redirect("ecommerce:payment_complete",  order_id=order_id)
-
-
-class PaymentCompleteView(LoginRequiredMixin, TemplateView):
-    template_name = "pages/ecommerce/payment_complete.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        cart_total_amount = Decimal("0.00")
-
-        cart_data_obj = self.request.session.get("cart_data_obj", {})
-
-        if cart_data_obj:
-            for item in cart_data_obj.values():
-                cart_total_amount += int(item["quantity"]) * Decimal(item["price"])                 # noqa
-
-        context["cart_data"] = cart_data_obj
-        context["totalcartitems"] = len(cart_data_obj)
-        context["cart_total_amount"] = cart_total_amount
-
-        # Clear the session cart data
-        if "cart_data_obj" in self.request.session:
-            del self.request.session["cart_data_obj"]
-
-        return context
 
 
 class PaymentFailedView(LoginRequiredMixin, TemplateView):

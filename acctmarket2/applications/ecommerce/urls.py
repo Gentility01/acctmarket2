@@ -134,9 +134,9 @@ urlpatterns = [
         name="create_nowpayment",
     ),
     path(
-        "complete-nowpayment-verification/",
-        views.CompleteNowPaymentVerificationView.as_view(),
-        name="complete_nowpayment_verification"
+        "verify/nowpayment/<str:reference>/",
+        views.VerifyNowPaymentView.as_view(),
+        name="verify_nowpayment"
     ),
     path("ipn/", views.IPNView.as_view(), name="ipn"),
 ]

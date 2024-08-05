@@ -43,9 +43,8 @@
     </div>
     {% if show_verification_button %}
       <div class="text-center mt-4">
-        <form method="post" action="{% url 'ecommerce:complete_nowpayment_verification' %}">
+        <form method="post" action="{% url 'ecommerce:verify_nowpayment' order.payment.reference %}">
           {% csrf_token %}
-          <input type="hidden" name="order_id" value="{{ order_id }}">
           <button type="submit" class="btn btn-warning">Complete NowPayments Verification</button>
         </form>
       </div>
