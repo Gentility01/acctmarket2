@@ -802,37 +802,59 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
         payment = get_object_or_404(Payment, reference=reference)
-        verified = payment.verify_payment_nowpayments()
+        nowpayment = NowPayment()
+        result = nowpayment.verify_payment(reference)
 
-        if verified:
-            try:
-                with transaction.atomic():
-                    self.assign_unique_keys_to_order(payment.order.id)
-
-                purchased_product_url = request.build_absolute_uri(
-                    reverse("ecommerce:purchased_products")
-                )
-                send_mail(
-                    "Your Purchase is Complete",
-                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",                           # noqa
-                    settings.DEFAULT_FROM_EMAIL,
-                    [request.user.email],
-                    fail_silently=False,
-                )
-                messages.success(
-                    request,
-                    "Verification successful. Check your mail to access the products you purchased."          # noqa
-                )
-                return redirect("ecommerce:payment_complete")
-            except ValidationError as e:
-                messages.error(
-                    request,
-                    f"Verification succeeded but an issue occurred: {e!s}"
-                )
-                return redirect("ecommerce:support")
-        else:
-            messages.error(request, "Verification failed")
+        logging.info(f"NowPayments verification result: {result}")
+        if not result:
+            logging.error("No response from NowPayments API")
+            payment.status = "failed"
+            payment.save()
+            messages.error(request, "No response from NowPayments API.")
             return redirect("ecommerce:payment_failed")
+
+        if result and result.get("payment_status") == "confirmed":
+            nowpayments_amount = Decimal(result["pay_amount"])
+            if nowpayments_amount == payment.amount:
+                try:
+                    with transaction.atomic():
+                        payment.status = "verified"
+                        payment.verified = True
+                        payment.amount = nowpayments_amount
+                        payment.save()
+
+                        payment.order.paid_status = True
+                        payment.order.save()
+
+                        self.assign_unique_keys_to_order(payment.order.id)
+
+                    purchased_product_url = request.build_absolute_uri(
+                        reverse("ecommerce:purchased_products")
+                    )
+                    send_mail(
+                        "Your Purchase is Complete",
+                        f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",     # noqa
+                        settings.DEFAULT_FROM_EMAIL,
+                        [request.user.email],
+                        fail_silently=False,
+                    )
+                    messages.success(
+                        request,
+                        "Verification successful. Check your email to access the products you purchased."           # noqa
+                    )
+                    return redirect("ecommerce:payment_complete")
+                except Exception as e:
+                    logging.error(f"Error during verification: {e}")
+                    messages.error(
+                        request,
+                        f"Verification succeeded but an issue occurred: {e!s}"
+                    )
+                    return redirect("ecommerce:support")
+
+        payment.status = "failed"
+        payment.save()
+        messages.error(request, "Verification failed.")
+        return redirect("ecommerce:payment_failed")
 
     def assign_unique_keys_to_order(self, order_id):
         order = get_object_or_404(CartOrder, id=order_id)
