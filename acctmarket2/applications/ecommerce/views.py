@@ -614,6 +614,10 @@ class VerifyPaymentView(View):
             verified = payment.verify_paystack_payment()
         elif payment.order.payment_method == "nowpayments":
             verified = payment.verify_payment_nowpayments()
+            # Explicitly update the payment status if using NowPayments
+            if verified:
+                payment.status = "verified"  # Update status to verified
+                payment.save()
         else:
             messages.error(request, "Unknown payment method")
             return redirect("ecommerce:payment_failed")
