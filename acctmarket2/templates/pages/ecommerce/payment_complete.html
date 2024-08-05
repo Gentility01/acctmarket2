@@ -7,7 +7,7 @@
     <p class="text-center">Thank you for your purchase!</p>
     <div class="invoice-details mb-4">
       <p>
-        <strong>Name:</strong> {{ user.name }}
+        <strong>Name:</strong> {{ user.get_full_name }}
       </p>
       <p>
         <strong>Email:</strong> {{ user.email }}
@@ -27,15 +27,15 @@
           <tr>
             <td>{{ item.title }}</td>
             <td>{{ item.quantity }}</td>
-            <td>${{ item.price }}</td>
-            <td>${% widthratio item.price item.quantity 1 %}</td>
+            <td>${{ item.price|floatformat:2 }}</td>
+            <td>${{ item.price|floatformat:2 }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
     <div class="invoice-total mt-4">
       <p>
-        <strong>Total Amount:</strong> ${{ cart_total_amount }}
+        <strong>Total Amount:</strong> ${{ cart_total_amount|floatformat:2 }}
       </p>
     </div>
     <div class="text-center mt-4">
@@ -43,29 +43,20 @@
     </div>
     {% if show_verification_button %}
       <div class="text-center mt-4">
-        <form method="post" action="{% url 'ecommerce:verify_nowpayment' payment.reference %}">
+        <form method="post" action="{% url 'ecommerce:verify_nowpayment' payment_reference %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-warning">Complete NowPayments Verification</button>
         </form>
       </div>
     {% endif %}
   </div>
-  <br />
 {% endblock %}
 
 {% block extra_js %}
   <script>
-    // Function to multiply values in the template
-    function multiply(a, b) {
-      return (parseFloat(a) * parseFloat(b)).toFixed(2);
-    }
-    // Apply multiplication function to each total cell
+    // Example JavaScript for additional functionality
     document.addEventListener("DOMContentLoaded", function() {
-      document.querySelectorAll('td[data-quantity]').forEach(function(td) {
-        let quantity = td.getAttribute('data-quantity');
-        let price = td.getAttribute('data-price');
-        td.textContent = multiply(quantity, price);
-      });
+      // Your JavaScript code here
     });
   </script>
 {% endblock %}
