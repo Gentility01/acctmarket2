@@ -800,8 +800,11 @@ class NowPaymentView(View):
         headers = {
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
+        # response = requests.get(
+        #     "https://api.nowpayments.io/v1/currencies", headers=headers
+        # )
         response = requests.get(
-            "https://api.nowpayments.io/v1/currencies", headers=headers
+            "https://api-sandbox.nowpayments.io/v1/currencies", headers=headers
         )
         if response.status_code == 200:
             return response.json()["currencies"]
@@ -849,8 +852,7 @@ class NowPaymentView(View):
             "order_description": f"Order #{order.id} for user {order.user.id}",
             "success_url": request.build_absolute_uri(
                 reverse(
-                    "ecommerce:payment_complete",
-                    kwargs={"order_id": order.id}
+                    "ecommerce:payment_complete"
                 )
             ),
             "cancel_url": request.build_absolute_uri(
@@ -1010,22 +1012,6 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         # Clear the session cart data
         if "cart_data_obj" in self.request.session:
             del self.request.session["cart_data_obj"]
-
-        # Check if the payment method is NowPayments
-        # and the payment is not verified
-        order_id = self.kwargs.get("order_id")
-        logging.debug(f"Order ID: {order_id}")
-        order = get_object_or_404(
-            CartOrder,
-            id=order_id, user=self.request.user
-        )
-        payment = order.payment
-
-        if order.payment_method == "nowpayments" and not payment.verified:
-            context["show_verification_button"] = True
-            context["order_id"] = order.id
-        else:
-            context["show_verification_button"] = False
 
         return context
 
