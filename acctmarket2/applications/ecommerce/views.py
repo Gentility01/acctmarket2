@@ -896,7 +896,7 @@ class IPNView(View):
 
         try:
             order = get_object_or_404(CartOrder, id=order_id)
-            payment = order.payment
+            payment = get_object_or_404(Payment, order=order)
 
             if not payment:
                 return JsonResponse({
@@ -905,10 +905,13 @@ class IPNView(View):
                     status=404
                 )
 
+            # Use NowPayment instance to verify the payment
             nowpayment = NowPayment()
-            payment_data = nowpayment.verify_payment(payment.reference)
+            payment_verified = nowpayment.verify_payment(payment.reference)
 
-            if payment_data and payment_data.get("payment_status") == "confirmed":            # noqa
+            if payment_verified and payment_verified.get(
+                "payment_status"
+            ) == "confirmed":
                 self.process_successful_payment(order, payment, request)
                 return JsonResponse({
                     "status": "success",
@@ -929,13 +932,13 @@ class IPNView(View):
             }, status=500)
 
     def process_successful_payment(self, order, payment, request):
-        verify_payment_view = VerifyPaymentView()
+        # Make sure to use the correct method to assign unique keys and update order status                     # noqa
         with transaction.atomic():
-            verify_payment_view.assign_unique_keys_to_order(order.id)
+            VerifyPaymentView().assign_unique_keys_to_order(order.id)
         order.paid_status = True
         order.save()
         payment.verified = True
-        payment.status = 'confirmed'
+        payment.status = 'verified'  # Ensure status is set to 'verified'
         payment.save()
 
         purchased_product_url = request.build_absolute_uri(
@@ -943,7 +946,7 @@ class IPNView(View):
         )
         send_mail(
             "Your Purchase is Complete",
-            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",             # noqa
+            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",          # noqa
             settings.DEFAULT_FROM_EMAIL,
             [order.user.email],
             fail_silently=False,
