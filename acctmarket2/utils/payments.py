@@ -31,7 +31,10 @@ class PayStack:
 
 class NowPayment:
     NOWPAYMENTS_API_KEY = settings.NOWPAYMENTS_API_KEY
-    NOWPAYMENTS_API_URL = "https://api.nowpayments.io/v1/"
+    # real one
+    # NOWPAYMENTS_API_URL = "https://api.nowpayments.io/v1/"
+    # for testing
+    NOWPAYMENTS_API_URL = "https://api-sandbox.nowpayments.io/v1/"
 
     def create_payment(self, amount, currency, order_id, description, request):
         """
