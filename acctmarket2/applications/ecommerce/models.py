@@ -290,6 +290,7 @@ class Payment(TimeBasedModel):
     reference = CharField(
         max_length=100, unique=True, default="", blank=True
     )
+    payment_id = IntegerField(blank=True, null=True)
     status = CharField(
         max_length=20, default="pending", blank=True
     )

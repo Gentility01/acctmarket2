@@ -3,7 +3,6 @@ from decimal import Decimal
 
 import requests
 from django.conf import settings
-from django.contrib import messages
 from django.urls import reverse
 
 logger = logging.getLogger(__name__)
@@ -72,9 +71,17 @@ class NowPayment:
             )
         }
         response = requests.post(url, headers=headers, json=data)
-        return response.json()
+        result = response.json()
+        if response.status_code == 200:
+            return result
+        else:
+            # Handle error appropriately
+            return {
+                "status": False,
+                "message": result.get("message", "Unknown error")
+            }
 
-    def verify_payment(self, payment_reference, request):
+    def verify_payment(self, payment_id):
         """
         Verify the payment using the NowPayments API.
 
@@ -90,19 +97,13 @@ class NowPayment:
             "x-api-key": self.NOWPAYMENTS_API_KEY,
         }
 
-        # Add debug statement to check the value of payment_reference
-        messages.info(
-            request,
-            f"Verifying payment with reference: {payment_reference}")
-
-        url = f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}"
+        url = f"{self.NOWPAYMENTS_API_URL}payment/{payment_id}"
         response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
             return True, response.json()
 
         error_message = f"Failed to verify payment: {response.status_code}, {response.text}" # noqa
-        messages.error(request, error_message)
         return False, error_message
 
 

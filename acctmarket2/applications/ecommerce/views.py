@@ -816,7 +816,7 @@ class VerifyNowPaymentView(View):
         messages.error(request, f"Payment object: {payment}")
 
         nowpayment = NowPayment()
-        success, result = nowpayment.verify_payment(reference, request)
+        success, result = nowpayment.verify_payment(payment.payment_id)
 
         # Debug statement to check verification result
         messages.error(request, f"NowPayments verification result: {result}")
