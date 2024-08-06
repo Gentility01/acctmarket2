@@ -41,14 +41,14 @@
     <div class="text-center mt-4">
       <a href="{% url 'homeapp:shop_list' %}" class="btn btn-primary">Continue Shopping</a>
     </div>
-    {% comment %} {% if show_verification_button %}
+    {% if show_verification_button %}
       <div class="text-center mt-4">
         <form method="post" action="{% url 'ecommerce:verify_nowpayment' payment_reference %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-warning">Complete NowPayments Verification</button>
         </form>
       </div>
-    {% endif %} {% endcomment %}
+    {% endif %}
   </div>
 {% endblock %}
 
