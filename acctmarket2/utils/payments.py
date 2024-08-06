@@ -101,10 +101,9 @@ class NowPayment:
         if response.status_code == 200:
             return True, response.json()
 
-        messages.error(
-            request,
-            f"Failed to verify payment: {response.status_code}, {response.text}")           # noqa
-        return False
+        error_message = f"Failed to verify payment: {response.status_code}, {response.text}" # noqa
+        messages.error(request, error_message)
+        return False, error_message
 
 
 def get_exchange_rate(target_currency="NGN"):
