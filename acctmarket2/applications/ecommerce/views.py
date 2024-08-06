@@ -801,21 +801,18 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
-        # Add debug print statement
-        print(f"Received payment reference: {reference}")
+        # Ensure the reference is numeric
+        if not isinstance(reference, int):
+            messages.error(request, "Invalid payment reference.")
+            return redirect("ecommerce:payment_failed")
+
         return self.verify_and_process_payment(request, reference)
 
     def verify_and_process_payment(self, request, reference):
         payment = get_object_or_404(Payment, reference=reference)
 
-        # Add debug print statement
-        print(f"Verifying payment for reference: {reference}")
-
         nowpayment = NowPayment()
         success, result = nowpayment.verify_payment(reference)
-
-        # Add debug print statement
-        print(f"NowPayments verification result: {result}")
 
         if not success:
             payment.status = "failed"
@@ -842,14 +839,14 @@ class VerifyNowPaymentView(View):
                         )
                         send_mail(
                             "Your Purchase is Complete",
-                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",               # noqa
+                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",  # noqa
                             settings.DEFAULT_FROM_EMAIL,
                             [request.user.email],
                             fail_silently=False,
                         )
                         messages.success(
                             request,
-                            "Verification successful. Check your email for access to your products."           # noqa
+                            "Verification successful. Check your email for access to your products."  # noqa
                         )
                         return redirect("ecommerce:payment_complete")
 
