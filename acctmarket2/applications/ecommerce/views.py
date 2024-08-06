@@ -801,18 +801,25 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
-        # Ensure the reference is numeric
-        if not isinstance(reference, int):
-            messages.error(request, "Invalid payment reference.")
-            return redirect("ecommerce:payment_failed")
-
+        # Debug statement to check the value of reference
+        messages.error(request, f"Received payment reference: {reference}")
         return self.verify_and_process_payment(request, reference)
 
     def verify_and_process_payment(self, request, reference):
-        payment = get_object_or_404(Payment, reference=reference)
+        try:
+            payment = get_object_or_404(Payment, reference=reference)
+        except:                                               # noqa
+            messages.error(request, "Invalid payment reference.")
+            return redirect("ecommerce:payment_failed")
+
+        # Debug statement to check payment object
+        messages.error(request, f"Payment object: {payment}")
 
         nowpayment = NowPayment()
         success, result = nowpayment.verify_payment(reference)
+
+        # Debug statement to check verification result
+        messages.error(request, f"NowPayments verification result: {result}")
 
         if not success:
             payment.status = "failed"

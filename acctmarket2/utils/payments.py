@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import requests
 from django.conf import settings
+from django.contrib import messages
 from django.urls import reverse
 
 logger = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ class NowPayment:
         response = requests.post(url, headers=headers, json=data)
         return response.json()
 
-    def verify_payment(self, payment_reference):
+    def verify_payment(self, payment_reference, request):
         """
         Verify the payment using the NowPayments API.
 
@@ -90,7 +91,9 @@ class NowPayment:
         }
 
         # Add debug statement to check the value of payment_reference
-        print(f"Verifying payment with reference: {payment_reference}")
+        messages.info(
+            request,
+            f"Verifying payment with reference: {payment_reference}")
 
         url = f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}"
         response = requests.get(url, headers=headers)
@@ -98,8 +101,10 @@ class NowPayment:
         if response.status_code == 200:
             return True, response.json()
 
-        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"             # noqa
-        return False, error_message
+        messages.error(
+            request,
+            f"Failed to verify payment: {response.status_code}, {response.text}")           # noqa
+        return False
 
 
 def get_exchange_rate(target_currency="NGN"):
