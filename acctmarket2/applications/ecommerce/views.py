@@ -30,8 +30,7 @@ from acctmarket2.applications.ecommerce.models import (CartOrder,
                                                        Product, ProductImages,
                                                        ProductKey,
                                                        ProductReview, WishList)
-from acctmarket2.utils.payments import (NowPayment, convert_to_naira,
-                                        get_exchange_rate)
+from acctmarket2.utils.payments import convert_to_naira, get_exchange_rate
 from acctmarket2.utils.views import ContentManagerRequiredMixin
 
 logger = logging.getLogger(__name__)
@@ -801,7 +800,6 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
-        # Debug statement to check the value of reference
         messages.error(request, f"Received payment reference: {reference}")
         return self.verify_and_process_payment(request, reference)
 
@@ -812,62 +810,43 @@ class VerifyNowPaymentView(View):
             messages.error(request, "Invalid payment reference.")
             return redirect("ecommerce:payment_failed")
 
-        # Debug statement to check payment object
         messages.error(request, f"Payment object: {payment}")
 
-        nowpayment = NowPayment()
-        success, result = nowpayment.verify_payment(payment.payment_id)
-
-        # Debug statement to check verification result
-        messages.error(request, f"NowPayments verification result: {result}")
+        success = payment.verify_payment_nowpayments()
 
         if not success:
-            payment.status = "failed"
-            payment.save()
-            messages.error(request, result)
+            messages.error(
+                request,
+                f"Failed to verify payment: {payment.status}"
+            )
             return redirect("ecommerce:payment_failed")
 
-        if result.get("payment_status") == "confirmed":
-            nowpayments_amount = Decimal(result.get("pay_amount", "0"))
-            if nowpayments_amount == payment.amount:
-                try:
-                    with transaction.atomic():
-                        payment.status = "verified"
-                        payment.verified = True
-                        payment.amount = nowpayments_amount
-                        payment.save()
+        try:
+            with transaction.atomic():
+                self.assign_unique_keys_to_order(payment.order.id)
 
-                        # Assign unique keys and passwords
-                        self.assign_unique_keys_to_order(payment.order.id)
+                purchased_product_url = request.build_absolute_uri(
+                    reverse("ecommerce:purchased_products")
+                )
+                send_mail(
+                    "Your Purchase is Complete",
+                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",  # noqa
+                    settings.DEFAULT_FROM_EMAIL,
+                    [request.user.email],
+                    fail_silently=False,
+                )
+                messages.success(
+                    request,
+                    "Verification successful. Check your email for access to your products."  # noqa
+                )
+                return redirect("ecommerce:payment_complete")
 
-                        # Send email notification
-                        purchased_product_url = request.build_absolute_uri(
-                            reverse("ecommerce:purchased_products")
-                        )
-                        send_mail(
-                            "Your Purchase is Complete",
-                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",  # noqa
-                            settings.DEFAULT_FROM_EMAIL,
-                            [request.user.email],
-                            fail_silently=False,
-                        )
-                        messages.success(
-                            request,
-                            "Verification successful. Check your email for access to your products."  # noqa
-                        )
-                        return redirect("ecommerce:payment_complete")
-
-                except Exception as e:
-                    messages.error(
-                        request,
-                        f"Verification succeeded but an issue occurred: {e}"
-                    )
-                    return redirect("ecommerce:support")
-
-        payment.status = "failed"
-        payment.save()
-        messages.error(request, "Verification failed.")
-        return redirect("ecommerce:payment_failed")
+        except Exception as e:
+            messages.error(
+                request,
+                f"Verification succeeded but an issue occurred: {e}"
+            )
+            return redirect("ecommerce:support")
 
     def assign_unique_keys_to_order(self, order_id):
         order = get_object_or_404(CartOrder, id=order_id)

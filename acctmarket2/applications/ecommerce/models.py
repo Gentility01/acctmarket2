@@ -337,7 +337,7 @@ class Payment(TimeBasedModel):
 
     def verify_payment_nowpayments(self):
         nowpayment = NowPayment()
-        result = nowpayment.verify_payment(self.reference)
+        result = nowpayment.verify_payment(self.payment_id)
         logging.info(f"NowPayments verification result: {result}")
         if not result:
             logging.error("No response from NowPayments API")
