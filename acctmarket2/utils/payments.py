@@ -87,14 +87,15 @@ class NowPayment:
             otherwise None.
         """
         headers = {
-            "x-api-key": settings.NOWPAYMENTS_API_KEY,
+            "x-api-key": self.NOWPAYMENTS_API_KEY,
         }
-        response = requests.get(
-            f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}", headers=headers             # noqa
-        )
+        url = f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}"
+        response = requests.get(url, headers=headers)
+
         if response.status_code == 200:
-            return response.json()
-        return None
+            return True, response.json()
+        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"   # noqa
+        return False, error_message
 
 
 def get_exchange_rate(target_currency="NGN"):
