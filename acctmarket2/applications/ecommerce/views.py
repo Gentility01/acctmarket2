@@ -956,7 +956,7 @@ class NowPaymentView(View):
             # Include query parameters for success_url and redirect to PaymentCompleteView                      # noqa
             "success_url": request.build_absolute_uri(
                 reverse("ecommerce:payment_complete")
-            ) + f"?order_id={order.id}&payment_reference={payment.reference}",
+            ) + f"?order_id={order.id}&payment_reference={payment.payment_id}",
             "cancel_url": request.build_absolute_uri(reverse("ecommerce:payment_failed"))              # noqa
         }
 
@@ -996,7 +996,7 @@ class IPNView(View):
                 }, status=404)
 
             verify_payment_view = VerifyNowPaymentView()
-            response = verify_payment_view.verify_and_process_payment(request, payment.reference)                 # noqa
+            response = verify_payment_view.verify_and_process_payment(request, payment.payment_id)                 # noqa
 
             if response.status_code == 302 and "payment_complete" in response.url:                                       # noqa
                 return JsonResponse({
