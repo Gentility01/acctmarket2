@@ -339,7 +339,7 @@ class Payment(TimeBasedModel):
         nowpayment = NowPayment()
         result = nowpayment.verify_payment(self.payment_id)
         logging.info(f"NowPayments verification result: {result}")
-        if not result:
+        if not result or not result.get("status"):
             logging.error("No response from NowPayments API")
             self.status = "failed"
             self.save()
@@ -349,12 +349,14 @@ class Payment(TimeBasedModel):
             if nowpayments_amount == self.amount:
                 self.status = "verified"
                 self.verified = True
+                # self.amount = nowpayments_amount
+                self.amount = self.amount
                 self.amount = nowpayments_amount
                 self.save()
                 self.order.paid_status = True
                 self.order.save()
                 return True
-        self.status = "failed2"
+        self.status = "failed"
         self.save()
         return False
 
