@@ -834,14 +834,14 @@ class VerifyNowPaymentView(View):
                         )
                         send_mail(
                             "Your Purchase is Complete",
-                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",     # noqa
+                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",           # noqa
                             settings.DEFAULT_FROM_EMAIL,
                             [request.user.email],
                             fail_silently=False,
                         )
                         messages.success(
                             request,
-                            "Verification successful. Check your email for access to your products." # noqa
+                            "Verification successful. Check your email for access to your products."           # noqa
                         )
                         return redirect("ecommerce:payment_complete")
 
