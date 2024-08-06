@@ -1080,7 +1080,7 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
 
         # Determine if the verification button should be shown
         context["show_verification_button"] = (
-            payment.payment_method == "nowpayments" and not payment.verified
+            order.payment_method == "nowpayments" and not payment.verified
         )
 
         # Clear the session cart data
