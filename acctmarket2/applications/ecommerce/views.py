@@ -806,6 +806,7 @@ class VerifyNowPaymentView(View):
         result = nowpayment.verify_payment(reference)
 
         logging.info(f"NowPayments verification result: {result}")
+
         if not result:
             logging.error("No response from NowPayments API")
             payment.status = "failed"
@@ -813,8 +814,8 @@ class VerifyNowPaymentView(View):
             messages.error(request, "No response from NowPayments API.")
             return redirect("ecommerce:payment_failed")
 
-        if result and result.get("payment_status") == "confirmed":
-            nowpayments_amount = Decimal(result["pay_amount"])
+        if result.get("payment_status") == "confirmed":
+            nowpayments_amount = Decimal(result.get("pay_amount", "0"))
             if nowpayments_amount == payment.amount:
                 try:
                     with transaction.atomic():
@@ -823,31 +824,31 @@ class VerifyNowPaymentView(View):
                         payment.amount = nowpayments_amount
                         payment.save()
 
-                        payment.order.paid_status = True
-                        payment.order.save()
-
+                        # Assign unique keys and passwords
                         self.assign_unique_keys_to_order(payment.order.id)
 
-                    purchased_product_url = request.build_absolute_uri(
-                        reverse("ecommerce:purchased_products")
-                    )
-                    send_mail(
-                        "Your Purchase is Complete",
-                        f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",                  # noqa
-                        settings.DEFAULT_FROM_EMAIL,
-                        [request.user.email],
-                        fail_silently=False,
-                    )
-                    messages.success(
-                        request,
-                        "Verification successful. Check your email to access the products you purchased."            # noqa
-                    )
-                    return redirect("ecommerce:payment_complete")
+                        # Send email notification
+                        purchased_product_url = request.build_absolute_uri(
+                            reverse("ecommerce:purchased_products")
+                        )
+                        send_mail(
+                            "Your Purchase is Complete",
+                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",  # noqa
+                            settings.DEFAULT_FROM_EMAIL,
+                            [request.user.email],
+                            fail_silently=False,
+                        )
+                        messages.success(
+                            request,
+                            "Verification successful. Check your email for access to your products."                        # noqa
+                        )
+                        return redirect("ecommerce:payment_complete")
+
                 except Exception as e:
                     logging.error(f"Error during verification: {e}")
                     messages.error(
                         request,
-                        f"Verification succeeded but an issue occurred: {e!s}"
+                        f"Verification succeeded but an issue occurred: {e}"
                     )
                     return redirect("ecommerce:support")
 
@@ -864,7 +865,8 @@ class VerifyNowPaymentView(View):
             quantity = order_item.quantity
 
             available_keys = ProductKey.objects.select_for_update().filter(
-                product=product, is_used=False)[:quantity]
+                product=product, is_used=False
+            )[:quantity]
 
             if len(available_keys) < quantity:
                 self.handle_insufficient_keys(order_item, available_keys)
@@ -913,9 +915,8 @@ class NowPaymentView(View):
         headers = {
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
-        # response = requests.get(
-        #     "https://api.nowpayments.io/v1/currencies", headers=headers
-        # )
+        # Uncomment this line and comment the sandbox URL for production
+        # response = requests.get("https://api.nowpayments.io/v1/currencies", headers=headers)                  # noqa
         response = requests.get(
             "https://api-sandbox.nowpayments.io/v1/currencies", headers=headers
         )
@@ -958,33 +959,23 @@ class NowPaymentView(View):
             "price_amount": str(order.price),
             "price_currency": "USD",
             "pay_currency": pay_currency,
-            "ipn_callback_url": request.build_absolute_uri(
-                reverse("ecommerce:ipn")
-            ),
+            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),               # noqa
             "order_id": str(order.id),
             "order_description": f"Order #{order.id} for user {order.user.id}",
+            # Include query parameters for success_url and redirect to PaymentCompleteView                      # noqa
             "success_url": request.build_absolute_uri(
-                reverse(
-                    "ecommerce:payment_complete"
-                )
-            ),
-            "cancel_url": request.build_absolute_uri(
-                reverse("ecommerce:payment_failed")
-            )
+                reverse("ecommerce:payment_complete")
+            ) + f"?order_id={order.id}&payment_reference={payment.reference}",
+            "cancel_url": request.build_absolute_uri(reverse("ecommerce:payment_failed"))              # noqa
         }
 
         # Send the request to NOWPayments
         headers = {
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
-        # response = requests.post(
-        #     "https://api.nowpayments.io/v1/invoice",
-        #     json=payload, headers=headers
-        # )
-        response = requests.post(
-            "https://api-sandbox.nowpayments.io/v1/invoice",
-            json=payload, headers=headers
-        )
+        # Uncomment this line and comment the sandbox URL for production
+        # response = requests.post("https://api.nowpayments.io/v1/invoice", json=payload, headers=headers)                  # noqa
+        response = requests.post("https://api-sandbox.nowpayments.io/v1/invoice", json=payload, headers=headers)       # noqa
 
         # Process the response
         if response.status_code == 200:
@@ -1010,35 +1001,38 @@ class IPNView(View):
             if not payment:
                 return JsonResponse({
                     "status": "error",
-                    "message": "Payment not found for order"},
-                    status=404
-                )
+                    "message": "Payment not found for order"
+                }, status=404)
 
             nowpayment = NowPayment()
             payment_data = nowpayment.verify_payment(payment.reference)
 
-            if payment_data and payment_data.get("payment_status") == "confirmed":            # noqa
+            if payment_data and payment_data.get("payment_status") == "confirmed":                           # noqa
                 self.process_successful_payment(order, payment, request)
                 return JsonResponse({
                     "status": "success",
                     "redirect_url": reverse(
                         "ecommerce:payment_complete",
-                        kwargs={"order_id": order.id}
+                        kwargs={
+                            "order_id": order.id,
+                            "payment_reference": payment.reference
+                            }
                     )
                 })
             else:
                 return JsonResponse({
                     "status": "failed",
-                    "redirect_url": reverse("ecommerce:payment_failed")},
-                    status=400)
+                    "redirect_url": reverse("ecommerce:payment_failed")
+                }, status=400)
         except Exception as e:
             logging.error(f"IPN processing error: {e}")
             return JsonResponse({
-                "status": "error", "message": str(e)
+                "status": "error",
+                "message": str(e)
             }, status=500)
 
     def process_successful_payment(self, order, payment, request):
-        verify_payment_view = VerifyPaymentView()
+        verify_payment_view = VerifyNowPaymentView()
         with transaction.atomic():
             verify_payment_view.assign_unique_keys_to_order(order.id)
         order.paid_status = True
@@ -1047,12 +1041,10 @@ class IPNView(View):
         payment.status = 'confirmed'
         payment.save()
 
-        purchased_product_url = request.build_absolute_uri(
-            reverse("ecommerce:purchased_products")
-        )
+        purchased_product_url = request.build_absolute_uri(reverse("ecommerce:purchased_products"))             # noqa
         send_mail(
             "Your Purchase is Complete",
-            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",             # noqa
+            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",              # noqa
             settings.DEFAULT_FROM_EMAIL,
             [order.user.email],
             fail_silently=False,
@@ -1069,31 +1061,30 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         # Fetch the CartOrder and Payment from the database
         order_id = self.request.GET.get("order_id")
         payment_reference = self.request.GET.get("payment_reference")
-        order = get_object_or_404(
-            CartOrder, id=order_id, user=self.request.user)
-        payment = get_object_or_404(
-            Payment, order=order, reference=payment_reference)
+        order = get_object_or_404(CartOrder, id=order_id, user=self.request.user)           # noqa
+        payment = get_object_or_404(Payment, order=order, reference=payment_reference)                       # noqa
 
+        # Fetch cart data from session
         cart_data_obj = self.request.session.get("cart_data_obj", {})
 
         if cart_data_obj:
             for item in cart_data_obj.values():
-                cart_total_amount += int(item["quantity"]) * Decimal(item["price"])                 # noqa
+                cart_total_amount += Decimal(item["quantity"]) * Decimal(item["price"])                    # noqa
 
         # Prepare context
         context["cart_data"] = cart_data_obj
-        context["totalcartitems"] = len(cart_data_obj)
+        context["total_cart_items"] = len(cart_data_obj)
         context["cart_total_amount"] = cart_total_amount
         context["payment_reference"] = payment_reference
         context["payment_method"] = payment.payment_method
 
-        # Check if the verification button should be shown
-        if payment.payment_method == "nowpayments" and not payment.verified:
-            context["show_verification_button"] = True
+        # Determine if the verification button should be shown
+        context["show_verification_button"] = (
+            payment.payment_method == "nowpayments" and not payment.verified
+        )
 
         # Clear the session cart data
-        if "cart_data_obj" in self.request.session:
-            del self.request.session["cart_data_obj"]
+        self.request.session.pop("cart_data_obj", None)
 
         return context
 
