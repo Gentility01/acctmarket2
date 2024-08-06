@@ -1039,31 +1039,41 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cart_total_amount = Decimal("0.00")
-
-        # Fetch the CartOrder and Payment from the database
         order_id = self.request.GET.get("order_id")
         payment_reference = self.request.GET.get("payment_reference")
-        order = get_object_or_404(CartOrder, id=order_id, user=self.request.user)           # noqa
-        payment = get_object_or_404(Payment, order=order, reference=payment_reference)                       # noqa
+
+        # Initialize order and payment variables
+        order = None
+        payment = None
+
+        if order_id and payment_reference:
+            # Fetch the CartOrder and Payment from the database
+            order = get_object_or_404(
+                CartOrder, id=order_id, user=self.request.user
+            )
+            payment = get_object_or_404(
+                Payment, order=order, reference=payment_reference
+            )
+
+            if order.payment_method == "nowpayments":
+                context["payment_reference"] = payment_reference
+                context["payment_method"] = order.payment_method
+
+                # Determine if the verification button should be shown
+                context["show_verification_button"] = not payment.verified
 
         # Fetch cart data from session
         cart_data_obj = self.request.session.get("cart_data_obj", {})
 
         if cart_data_obj:
             for item in cart_data_obj.values():
-                cart_total_amount += Decimal(item["quantity"]) * Decimal(item["price"])                    # noqa
+                cart_total_amount += Decimal(
+                    item["quantity"]) * Decimal(item["price"])
 
         # Prepare context
         context["cart_data"] = cart_data_obj
         context["total_cart_items"] = len(cart_data_obj)
         context["cart_total_amount"] = cart_total_amount
-        context["payment_reference"] = payment_reference
-        context["payment_method"] = order.payment_method
-
-        # Determine if the verification button should be shown
-        context["show_verification_button"] = (
-            order.payment_method == "nowpayments" and not payment.verified
-        )
 
         # Clear the session cart data
         self.request.session.pop("cart_data_obj", None)
