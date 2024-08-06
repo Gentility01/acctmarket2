@@ -801,16 +801,21 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
-        messages.success(request, f"Received payment reference: {reference}")
+        # Add debug print statement
+        print(f"Received payment reference: {reference}")
         return self.verify_and_process_payment(request, reference)
 
     def verify_and_process_payment(self, request, reference):
         payment = get_object_or_404(Payment, reference=reference)
-        messages.success(request, f"Verifying payment for reference: {reference}")             # noqa
+
+        # Add debug print statement
+        print(f"Verifying payment for reference: {reference}")
 
         nowpayment = NowPayment()
         success, result = nowpayment.verify_payment(reference)
-        messages.success(request, f"NowPayments verification result: {result}")
+
+        # Add debug print statement
+        print(f"NowPayments verification result: {result}")
 
         if not success:
             payment.status = "failed"
@@ -837,7 +842,7 @@ class VerifyNowPaymentView(View):
                         )
                         send_mail(
                             "Your Purchase is Complete",
-                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",           # noqa
+                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",               # noqa
                             settings.DEFAULT_FROM_EMAIL,
                             [request.user.email],
                             fail_silently=False,

@@ -89,10 +89,8 @@ class NowPayment:
             "x-api-key": self.NOWPAYMENTS_API_KEY,
         }
 
-        try:
-            payment_reference = int(payment_reference)  # Ensure it's an integer                 # noqa
-        except ValueError:
-            return False, "Payment reference must be a number."
+        # Add debug statement to check the value of payment_reference
+        print(f"Verifying payment with reference: {payment_reference}")
 
         url = f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}"
         response = requests.get(url, headers=headers)
@@ -100,7 +98,7 @@ class NowPayment:
         if response.status_code == 200:
             return True, response.json()
 
-        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"                # noqa
+        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"             # noqa
         return False, error_message
 
 
