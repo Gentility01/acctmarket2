@@ -801,13 +801,16 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
+        messages.success(request, f"Received payment reference: {reference}")
         return self.verify_and_process_payment(request, reference)
 
     def verify_and_process_payment(self, request, reference):
         payment = get_object_or_404(Payment, reference=reference)
+        messages.success(request, f"Verifying payment for reference: {reference}")             # noqa
 
         nowpayment = NowPayment()
         success, result = nowpayment.verify_payment(reference)
+        messages.success(request, f"NowPayments verification result: {result}")
 
         if not success:
             payment.status = "failed"
