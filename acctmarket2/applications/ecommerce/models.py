@@ -10,7 +10,8 @@ from django.contrib.auth.models import Permission
 from django.core.validators import MinValueValidator
 from django.db.models import (CASCADE, SET_NULL, BooleanField, CharField,
                               DateTimeField, DecimalField, FileField,
-                              IntegerField, JSONField, SlugField, TextField)
+                              IntegerField, JSONField, PositiveIntegerField,
+                              SlugField, TextField)
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -290,7 +291,7 @@ class Payment(TimeBasedModel):
     reference = CharField(
         max_length=100, unique=True, default="", blank=True
     )
-    payment_id = IntegerField(blank=True, null=True)
+    payment_id = PositiveIntegerField(blank=True, null=True)
     status = CharField(
         max_length=20, default="pending", blank=True
     )
@@ -306,7 +307,13 @@ class Payment(TimeBasedModel):
                 if not Payment.objects.filter(reference=reference).exists():
                     self.reference = reference
                     break
+        # Ensure payment_id is a number
+        if not self.payment_id:
+            self.payment_id = self.generate_payment_id()
         super().save(*args, **kwargs)
+
+    def generate_payment_id(self):
+        return Payment.objects.latest("id").id + 1 if Payment.objects.exists() else 1   # noqa
 
     def amount_value(self) -> int:
         return int(self.amount * 100)
