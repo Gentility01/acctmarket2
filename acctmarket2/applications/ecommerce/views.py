@@ -802,6 +802,8 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
         payment = get_object_or_404(Payment, reference=reference)
+        logging.info(f"Verifying payment for reference: {reference}")
+
         nowpayment = NowPayment()
         result = nowpayment.verify_payment(reference)
 
@@ -816,6 +818,8 @@ class VerifyNowPaymentView(View):
 
         if result.get("payment_status") == "confirmed":
             nowpayments_amount = Decimal(result.get("pay_amount", "0"))
+            logging.info(f"Payment amount from NowPayments: {nowpayments_amount}, Expected amount: {payment.amount}")       # noqa
+
             if nowpayments_amount == payment.amount:
                 try:
                     with transaction.atomic():
@@ -823,9 +827,11 @@ class VerifyNowPaymentView(View):
                         payment.verified = True
                         payment.amount = nowpayments_amount
                         payment.save()
+                        logging.info(f"Payment verified for reference: {reference}")                      # noqa
 
                         # Assign unique keys and passwords
                         self.assign_unique_keys_to_order(payment.order.id)
+                        logging.info(f"Assigned unique keys for order: {payment.order.id}")                             # noqa
 
                         # Send email notification
                         purchased_product_url = request.build_absolute_uri(
@@ -846,11 +852,13 @@ class VerifyNowPaymentView(View):
 
                 except Exception as e:
                     logging.error(f"Error during verification: {e}")
+                    payment.status = "failed"
+                    payment.save()
                     messages.error(
                         request,
                         f"Verification succeeded but an issue occurred: {e}"
                     )
-                    return redirect("ecommerce:support")
+                    return redirect("ecommerce:payment_failed")
 
         payment.status = "failed"
         payment.save()
@@ -859,6 +867,7 @@ class VerifyNowPaymentView(View):
 
     def assign_unique_keys_to_order(self, order_id):
         order = get_object_or_404(CartOrder, id=order_id)
+        logging.info(f"Assigning unique keys for order ID: {order_id}")
 
         for order_item in order.order_items.all():
             product = order_item.product
@@ -870,6 +879,7 @@ class VerifyNowPaymentView(View):
 
             if len(available_keys) < quantity:
                 self.handle_insufficient_keys(order_item, available_keys)
+                logging.warning(f"Insufficient keys for order item ID: {order_item.id}")                      # noqa
                 continue
 
             keys_and_passwords = []
@@ -885,6 +895,7 @@ class VerifyNowPaymentView(View):
 
             order_item.keys_and_passwords = keys_and_passwords
             order_item.save()
+            logging.info(f"Keys and passwords assigned for order item ID: {order_item.id}")                  # noqa
 
             product.quantity_in_stock -= quantity
             if product.quantity_in_stock < 1:
@@ -908,6 +919,7 @@ class VerifyNowPaymentView(View):
         product = order_item.product
         user = order_item.order.user
         notify_user_insufficient_keys(user, product)
+        logging.warning(f"User notified of insufficient keys for product: {product.name}")                # noqa
 
 
 class NowPaymentView(View):
@@ -1016,7 +1028,7 @@ class IPNView(View):
                         kwargs={
                             "order_id": order.id,
                             "payment_reference": payment.reference
-                            }
+                        }
                     )
                 })
             else:
