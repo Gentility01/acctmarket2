@@ -1076,7 +1076,7 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
         context["total_cart_items"] = len(cart_data_obj)
         context["cart_total_amount"] = cart_total_amount
         context["payment_reference"] = payment_reference
-        context["payment_method"] = payment.payment_method
+        context["payment_method"] = order.payment_method
 
         # Determine if the verification button should be shown
         context["show_verification_button"] = (
