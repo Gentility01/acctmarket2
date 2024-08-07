@@ -1111,13 +1111,20 @@ class PaymentCompleteView(LoginRequiredMixin, TemplateView):
                 # Determine if the verification button should be shown
                 context["show_verification_button"] = not payment.verified
 
+                # Add URL for NowPayments verification
+                context["verify_nowpayment_url"] = reverse(
+                    "ecommerce:verify_nowpayment",
+                    kwargs={"reference": payment_reference}
+                )
+
         # Fetch cart data from session
         cart_data_obj = self.request.session.get("cart_data_obj", {})
 
         if cart_data_obj:
             for item in cart_data_obj.values():
-                cart_total_amount += Decimal(
-                    item["quantity"]) * Decimal(item["price"])
+                cart_total_amount += Decimal(item["quantity"]) * Decimal(
+                    item["price"]
+                )
 
         # Prepare context
         context["cart_data"] = cart_data_obj
