@@ -7,10 +7,10 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.validators import MinValueValidator
-from django.db.models import (CASCADE, SET_NULL, BooleanField, CharField,
-                              DateTimeField, DecimalField, FileField,
-                              IntegerField, JSONField, PositiveIntegerField,
-                              SlugField, TextField)
+from django.db.models import (CASCADE, SET_NULL, BigIntegerField, BooleanField,
+                              CharField, DateTimeField, DecimalField,
+                              FileField, IntegerField, JSONField, SlugField,
+                              TextField)
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -290,7 +290,7 @@ class Payment(TimeBasedModel):
     reference = CharField(
         max_length=100, unique=True, default="", blank=True
     )
-    payment_id = PositiveIntegerField(blank=True, null=True)
+    payment_id = BigIntegerField(blank=True, null=True)
     status = CharField(
         max_length=20, default="pending", blank=True
     )
