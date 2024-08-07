@@ -3,8 +3,7 @@ from decimal import Decimal
 
 import requests
 from django.conf import settings
-
-# from django.urls import reverse
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +105,46 @@ class PayStack:
 class NowPayment:
     NOWPAYMENTS_API_KEY = settings.NOWPAYMENTS_API_KEY
     NOWPAYMENTS_API_URL = "https://api-sandbox.nowpayments.io/v1/"
+
+    def create_payment(self, amount, currency, order_id, description, request):    # noqa
+        """
+        Creates a payment invoice using the NowPayments API.
+
+        Args:
+            amount (float): The amount of the payment.
+            currency (str): The currency of the payment.
+            order_id (int): The ID of the order associated with the payment.
+            description (str): The description of the payment.
+            request (HttpRequest): The request object for making the API call.   # noqa
+
+        Returns:
+            dict: The response from the API call.
+        """
+        url = f"{self.NOWPAYMENTS_API_URL}invoice"
+        headers = {
+            "x-api-key": self.NOWPAYMENTS_API_KEY,
+            "Content-Type": "application/json",
+        }
+        data = {
+            "price_amount": amount,
+            "price_currency": currency,
+            "order_id": order_id,
+            "order_description": description,
+            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),     # noqa
+            "success_url": request.build_absolute_uri(reverse("ecommerce:payment_complete")),   # noqa
+            "cancel_url": request.build_absolute_uri(reverse("ecommerce:payment_failed"))   # noqa
+        }
+        response = requests.post(url, headers=headers, json=data)
+        result = response.json()
+
+        if response.status_code == 200:
+            if "payment_id" in result:
+                return {"status": True, "data": result}
+            else:
+                return {"status": False, "message": "Payment ID missing in response"}    # noqa
+        else:
+            # Handle error appropriately
+            return {"status": False, "message": result.get("message", "Unknown error")}    # noqa
 
     def verify_payment(self, payment_reference):
         """
