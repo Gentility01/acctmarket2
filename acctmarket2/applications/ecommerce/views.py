@@ -955,7 +955,7 @@ class NowPaymentView(View):
             defaults={
                 "user": request.user,
                 "amount": order.price,
-                "reference": Payment.refrence,
+                "reference": Payment.reference,
                 "payment_id": Payment.payment_id,
             },
         )
