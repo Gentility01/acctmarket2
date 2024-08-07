@@ -806,7 +806,7 @@ class VerifyNowPaymentView(View):
     def verify_and_process_payment(self, request, reference):
         try:
             payment = get_object_or_404(Payment, reference=reference)
-        except:  # noqa
+        except:     # noqa
             messages.error(request, "Invalid payment reference.")
             return redirect("ecommerce:payment_failed")
 
@@ -941,7 +941,8 @@ class NowPaymentView(View):
             defaults={
                 "user": request.user,
                 "amount": order.price,
-                "reference": Payment.payment_id
+                "reference": Payment.generate_unique_reference(),
+                "payment_id": Payment.generate_payment_id(),
             },
         )
 
@@ -971,6 +972,9 @@ class NowPaymentView(View):
         # Process the response
         if response.status_code == 200:
             response_data = response.json()
+            # Update the payment with the nowpayments payment ID
+            payment.payment_id = response_data["payment_id"]
+            payment.save()
             # Redirect the user to the payment page
             return redirect(response_data["invoice_url"])
         else:

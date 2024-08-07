@@ -1,5 +1,4 @@
 import logging
-import secrets
 import uuid
 from decimal import Decimal
 
@@ -302,18 +301,23 @@ class Payment(TimeBasedModel):
 
     def save(self, *args, **kwargs) -> None:
         if not self.reference:
-            while True:
-                reference = secrets.token_urlsafe(20)
-                if not Payment.objects.filter(reference=reference).exists():
-                    self.reference = reference
-                    break
-        # Ensure payment_id is a number
+            # Generate unique reference
+            self.reference = self.generate_unique_reference()
         if not self.payment_id:
+            # Generate unique payment_id
             self.payment_id = self.generate_payment_id()
         super().save(*args, **kwargs)
 
-    def generate_payment_id(self):
-        return Payment.objects.latest("id").id + 1 if Payment.objects.exists() else 1   # noqa
+    @staticmethod
+    def generate_payment_id():
+        return Payment.objects.latest("id").id + 1 if Payment.objects.exists() else 1  # noqa
+
+    @staticmethod
+    def generate_unique_reference():
+        while True:
+            reference = str(uuid.uuid4())
+            if not Payment.objects.filter(reference=reference).exists():
+                return reference
 
     def amount_value(self) -> int:
         return int(self.amount * 100)
@@ -349,8 +353,6 @@ class Payment(TimeBasedModel):
             if nowpayments_amount == self.amount:
                 self.status = "verified"
                 self.verified = True
-                # self.amount = nowpayments_amount
-                self.amount = self.amount
                 self.amount = nowpayments_amount
                 self.save()
                 self.order.paid_status = True
@@ -359,13 +361,6 @@ class Payment(TimeBasedModel):
         self.status = "failed"
         self.save()
         return False
-
-    @staticmethod
-    def generate_unique_reference():
-        while True:
-            reference = str(uuid.uuid4())
-            if not Payment.objects.filter(reference=reference).exists():
-                return reference
 
 
 class ProductReview(TimeBasedModel):
