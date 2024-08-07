@@ -86,12 +86,11 @@ class NowPayment:
         Verify the payment using the NowPayments API.
 
         Args:
-            payment_reference (str): The reference of
-            the payment to be verified.
+            payment_id (str): The ID of the payment to be verified.
 
         Returns:
-            dict or None: The response from the API call as a
-            JSON object if the status code is 200, otherwise None.
+            tuple: A tuple containing a boolean status and the response
+            from the API call as a JSON object if successful, otherwise None.
         """
         headers = {
             "x-api-key": self.NOWPAYMENTS_API_KEY,
@@ -103,9 +102,9 @@ class NowPayment:
         if response.status_code == 200:
             return True, response.json()
 
-        error_message = f"Failed to verify payment: {response.status_code}, {response.text}" # noqa
-        # return {"status": False, "message": error_message}
-        return None
+        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"  # noqa
+        # Return a tuple with False status and error message
+        return False, {"message": error_message}
 
 
 def get_exchange_rate(target_currency="NGN"):

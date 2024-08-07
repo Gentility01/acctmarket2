@@ -30,7 +30,8 @@ from acctmarket2.applications.ecommerce.models import (CartOrder,
                                                        Product, ProductImages,
                                                        ProductKey,
                                                        ProductReview, WishList)
-from acctmarket2.utils.payments import convert_to_naira, get_exchange_rate
+from acctmarket2.utils.payments import (NowPayment, convert_to_naira,
+                                        get_exchange_rate)
 from acctmarket2.utils.views import ContentManagerRequiredMixin
 
 logger = logging.getLogger(__name__)
@@ -799,106 +800,77 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 
 class VerifyNowPaymentView(View):
-    def post(self, request, reference, *args, **kwargs):
-        messages.error(request, f"Received payment reference: {reference}")
-        return self.verify_and_process_payment(request, reference)
-
-    def verify_and_process_payment(self, request, reference):
-        try:
-            payment = get_object_or_404(Payment, reference=reference)
-        except:     # noqa
-            messages.error(request, "Invalid payment reference.")
-            return redirect("ecommerce:payment_failed")
-
-        messages.error(request, f"Payment object: {payment}")
-
-        success = payment.verify_payment_nowpayments()
-
-        if not success:
-            messages.error(
-                request,
-                f"Failed to verify payment: {payment.status}"
-            )
-            return redirect("ecommerce:payment_failed")
+    def get(self, request, *args, **kwargs):
+        payment_reference = request.GET.get("payment_reference")
+        if not payment_reference:
+            messages.error(request, "Payment reference is missing.")
+            return redirect(reverse("ecommerce:payment_failed"))
 
         try:
-            with transaction.atomic():
-                self.assign_unique_keys_to_order(payment.order.id)
-
-                purchased_product_url = request.build_absolute_uri(
-                    reverse("ecommerce:purchased_products")
-                )
-                send_mail(
-                    "Your Purchase is Complete",
-                    f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",  # noqa
-                    settings.DEFAULT_FROM_EMAIL,
-                    [request.user.email],
-                    fail_silently=False,
-                )
-                messages.success(
-                    request,
-                    "Verification successful. Check your email for access to your products."  # noqa
-                )
-                return redirect("ecommerce:payment_complete")
-
-        except Exception as e:
-            messages.error(
-                request,
-                f"Verification succeeded but an issue occurred: {e}"
+            payment = Payment.objects.get(
+                reference=payment_reference,
+                user=request.user
             )
-            return redirect("ecommerce:support")
+        except Payment.DoesNotExist:
+            messages.error(request, "Payment not found.")
+            return redirect(reverse("ecommerce:payment_failed"))
 
-    def assign_unique_keys_to_order(self, order_id):
-        order = get_object_or_404(CartOrder, id=order_id)
+        # Verify payment with NowPayments
+        now_payment = NowPayment()
+        success, result = now_payment.verify_payment(payment.payment_id)
 
-        for order_item in order.order_items.all():
-            product = order_item.product
-            quantity = order_item.quantity
+        if success and result['payment_status'] == 'confirmed':
+            # Mark payment as verified
+            payment.verified = True
+            payment.save()
 
-            available_keys = ProductKey.objects.select_for_update().filter(
-                product=product, is_used=False
-            )[:quantity]
+            # Assign keys and passwords to the customer
+            self.assign_keys_to_customer(payment)
 
-            if len(available_keys) < quantity:
-                self.handle_insufficient_keys(order_item, available_keys)
-                continue
+            # Send email to customer
+            self.send_product_details_email(payment)
 
-            keys_and_passwords = []
+            messages.success(
+                request,
+                "Payment successfully verified and keys assigned."
+            )
+            return redirect(reverse("ecommerce:payment_complete") + f"?order_id={payment.order.id}&payment_reference={payment.reference}")   # noqa
+        else:
+            messages.error(
+                request, "Failed to verify payment. Please try again."
+            )
+            return redirect(reverse("ecommerce:payment_failed"))
 
-            for i in range(quantity):
-                product_key = available_keys[i]
-                product_key.is_used = True
-                product_key.save()
-                keys_and_passwords.append({
-                    "key": product_key.key,
-                    "password": product_key.password
-                })
+    def assign_keys_to_customer(self, payment):
+        order_items = payment.order.cartorderitems_set.all()
+        for item in order_items:
+            product_keys = item.product.unique_keys
+            for i in range(item.quantity):
+                unique_key = product_keys.pop()
+                ProductKey.objects.create(
+                    product=item.product,
+                    key=unique_key["key"],
+                    password=unique_key["password"],
+                    order_item=item
+                )
+                item.product.save()
 
-            order_item.keys_and_passwords = keys_and_passwords
-            order_item.save()
+    def send_product_details_email(self, payment):
+        # Prepare and send an email to the customer with product details
+        order = payment.order
+        user_email = order.user.email
+        product_details = order.cartorderitems_set.all()
 
-            product.quantity_in_stock -= quantity
-            if product.quantity_in_stock < 1:
-                product.visible = False
-            product.save()
+        # Construct email content
+        subject = f"Your Product Details for Order #{order.id}"
+        message = "Thank you for your purchase. Here are your product details:\n\n"         # noqa
+        for item in product_details:
+            message += f"Product: {item.product.name}\n"
+            for key in item.product.unique_keys:
+                message += f"Key: {key['key']}, Password: {key['password']}\n"
 
-    def handle_insufficient_keys(self, order_item, available_keys):
-        keys_and_passwords = []
-
-        for key in available_keys:
-            key.is_used = True
-            key.save()
-            keys_and_passwords.append({
-                "key": key.key,
-                "password": key.password
-            })
-
-        order_item.keys_and_passwords = keys_and_passwords
-        order_item.save()
-
-        product = order_item.product
-        user = order_item.order.user
-        notify_user_insufficient_keys(user, product)
+        # Send email
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email])
 
 
 class NowPaymentView(View):
@@ -918,10 +890,7 @@ class NowPaymentView(View):
     def get(self, request, order_id):
         order = get_object_or_404(CartOrder, id=order_id, user=request.user)
         supported_currencies = self.get_supported_currencies()
-        return render(
-            request,
-            "pages/ecommerce/create_nowpayment.html",
-            {
+        return render(request, "pages/ecommerce/create_nowpayment.html", {
                 "supported_currencies": supported_currencies,
                 "order": order,
             },
@@ -972,12 +941,32 @@ class NowPaymentView(View):
         # Process the response
         if response.status_code == 200:
             response_data = response.json()
+            # Use Django messages to inform the user
+            messages.success(
+                request,
+                "Payment created successfully. Redirecting to payment page."
+            )
             # Update the payment with the nowpayments payment ID
-            payment.payment_id = response_data["payment_id"]
-            payment.save()
-            # Redirect the user to the payment page
-            return redirect(response_data["invoice_url"])
+            payment_id = response_data.get("payment_id")
+            if payment_id:
+                payment.payment_id = payment_id
+                payment.save()
+                # Redirect the user to the payment page
+                return redirect(response_data["invoice_url"])
+            else:
+                # Handle missing payment_id in the response
+                messages.error(
+                    request,
+                    "Failed to create payment, payment_id missing in response."
+                )
+                return JsonResponse({
+                    "error": "Failed to create payment, payment_id missing in response"      # noqa
+                    }, status=response.status_code
+                )
         else:
+            messages.error(
+                request, "Failed to create payment. Please try again."
+            )
             return JsonResponse(response.json(), status=response.status_code)
 
 

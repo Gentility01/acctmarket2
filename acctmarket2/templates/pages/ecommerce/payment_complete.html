@@ -10,7 +10,7 @@
       <strong>Name:</strong> {{ request.user.first_name }}
     </p>
     <p>
-      <strong>Email:</strong> {{ user.email }}
+      <strong>Email:</strong> {{ request.user.email }}
     </p>
   </div>
   <table class="table table-striped table-bordered invoice-table">
@@ -28,7 +28,7 @@
         <td>{{ item.title }}</td>
         <td>{{ item.quantity }}</td>
         <td>${{ item.price|floatformat:2 }}</td>
-        <td>${{ item.price|floatformat:2 }}</td>
+        <td>${{ item.quantity|floatformat:2 }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -43,7 +43,7 @@
   </div>
   {% if show_verification_button %}
   <div class="text-center mt-4">
-    <form method="post" action="{% url 'ecommerce:verify_nowpayment' payment_reference %}">
+    <form method="post" action="{% url 'ecommerce:verify_nowpayment' %}?payment_reference={{ payment_reference }}">
       {% csrf_token %}
       <button type="submit" class="btn btn-warning">Complete NowPayments Verification</button>
     </form>
@@ -58,6 +58,5 @@
   document.addEventListener("DOMContentLoaded", function () {
     // Your JavaScript code here
   });
-
 </script>
 {% endblock %}
