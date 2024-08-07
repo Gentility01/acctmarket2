@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import requests
 from django.conf import settings
+# from django.contrib import messages
 from django.urls import reverse
 
 logger = logging.getLogger(__name__)
@@ -101,24 +102,13 @@ class PayStack:
 #         error_message = f"Failed to verify payment: {response.status_code}, {response.text}"   # noqa
 #         return None
 
-
 class NowPayment:
     NOWPAYMENTS_API_KEY = settings.NOWPAYMENTS_API_KEY
     NOWPAYMENTS_API_URL = "https://api-sandbox.nowpayments.io/v1/"
 
-    def create_payment(self, amount, currency, order_id, description, request):    # noqa
+    def create_payment(self, amount, currency, order_id, description, request):
         """
         Creates a payment invoice using the NowPayments API.
-
-        Args:
-            amount (float): The amount of the payment.
-            currency (str): The currency of the payment.
-            order_id (int): The ID of the order associated with the payment.
-            description (str): The description of the payment.
-            request (HttpRequest): The request object for making the API call.   # noqa
-
-        Returns:
-            dict: The response from the API call.
         """
         url = f"{self.NOWPAYMENTS_API_URL}invoice"
         headers = {
@@ -130,9 +120,15 @@ class NowPayment:
             "price_currency": currency,
             "order_id": order_id,
             "order_description": description,
-            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),     # noqa
-            "success_url": request.build_absolute_uri(reverse("ecommerce:payment_complete")),   # noqa
-            "cancel_url": request.build_absolute_uri(reverse("ecommerce:payment_failed"))   # noqa
+            "ipn_callback_url": request.build_absolute_uri(
+                reverse("ecommerce:ipn")
+            ),
+            "success_url": request.build_absolute_uri(
+                reverse("ecommerce:payment_complete")
+            ),
+            "cancel_url": request.build_absolute_uri(
+                reverse("ecommerce:payment_failed")
+            ),
         }
         response = requests.post(url, headers=headers, json=data)
         result = response.json()
@@ -141,29 +137,23 @@ class NowPayment:
             if "payment_id" in result:
                 return {"status": True, "data": result}
             else:
-                return {"status": False, "message": "Payment ID missing in response"}    # noqa
+                return {
+                    "status": False,
+                    "message": "Payment ID missing in response"
+                }
         else:
-            # Handle error appropriately
-            return {"status": False, "message": result.get("message", "Unknown error")}    # noqa
+            return {
+                "status": False,
+                "message": result.get("message", "Unknown error")
+            }
 
     def verify_payment(self, payment_reference):
         """
         Verify the payment using the NowPayments API.
-
-        Args:
-            payment_reference (str):
-            The reference of the payment to be verified.
-
-        Returns:
-            dict or None: The response from the API
-            call as a JSON object if the status code is 200, otherwise None.
         """
         headers = {
             "x-api-key": self.NOWPAYMENTS_API_KEY,
         }
-
-        # Add debug statement to check the value of payment_reference
-        print(f"Verifying payment with reference: {payment_reference}")
 
         url = f"{self.NOWPAYMENTS_API_URL}payment/{payment_reference}"
         response = requests.get(url, headers=headers)
@@ -171,7 +161,7 @@ class NowPayment:
         if response.status_code == 200:
             return True, response.json()
 
-        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"   # noqa
+        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"  # noqa
         return False, error_message
 
 

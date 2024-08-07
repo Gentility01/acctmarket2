@@ -801,21 +801,31 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 class VerifyNowPaymentView(View):
     def post(self, request, reference, *args, **kwargs):
-        # Add debug print statement
-        messages.warning(request, f"Received payment reference: {reference}")
+        # Debug statement to show the received payment reference
+        messages.warning(
+            request,
+            f"Received payment reference: {reference}"
+        )
         return self.verify_and_process_payment(request, reference)
 
     def verify_and_process_payment(self, request, reference):
         payment = get_object_or_404(Payment, reference=reference)
 
-        # Add debug print statement
-        print(f"Verifying payment for reference: {reference}")
+        # Debug statement to show that the payment verification is starting
+        messages.warning(
+            request,
+            f"Verifying payment for reference: {reference}"
+        )
 
         nowpayment = NowPayment()
         success, result = nowpayment.verify_payment(reference)
 
-        # Add debug print statement
-        messages.warning(request, f"NowPayments verification result: {result}")
+        # Debug statement to show the result
+        # of the NowPayments verification
+        messages.warning(
+            request,
+            f"NowPayments verification result: {result}"
+        )
 
         if not success:
             payment.status = "failed"
@@ -1022,22 +1032,25 @@ class IPNView(View):
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
         order_id = data.get("order_id")
-        logging.info(f"IPN received for order ID: {order_id}")
+        messages.info(request, f"IPN received for order ID: {order_id}")
 
         try:
             order = get_object_or_404(CartOrder, id=order_id)
             payment = order.payment
 
             if not payment:
+                messages.error(request, "Payment not found for order.")
                 return JsonResponse({
                     "status": "error",
                     "message": "Payment not found for order"
                 }, status=404)
 
             verify_payment_view = VerifyNowPaymentView()
-            response = verify_payment_view.verify_and_process_payment(request, payment.reference)                 # noqa
+            response = verify_payment_view.verify_and_process_payment(
+                request, payment.reference
+            )
 
-            if response.status_code == 302 and "payment_complete" in response.url:                                       # noqa
+            if response.status_code == 302 and "payment_complete" in response.url:    # noqa
                 return JsonResponse({
                     "status": "success",
                     "redirect_url": response.url
@@ -1048,7 +1061,7 @@ class IPNView(View):
                     "redirect_url": response.url
                 }, status=400)
         except Exception as e:
-            logging.error(f"IPN processing error: {e}")
+            messages.error(request, f"IPN processing error: {e}")
             return JsonResponse({
                 "status": "error",
                 "message": str(e)
