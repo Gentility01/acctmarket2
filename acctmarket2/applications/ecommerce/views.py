@@ -939,7 +939,7 @@ class NowPaymentView(View):
             "https://api-sandbox.nowpayments.io/v1/currencies", headers=headers
         )
         if response.status_code == 200:
-            return response.json()["currencies"]
+            return response.json().get("currencies", [])
         return []
 
     def get(self, request, order_id):
@@ -1001,29 +1001,36 @@ class NowPaymentView(View):
         # Process the response
         if response.status_code == 200:
             response_data = response.json()
+            messages.warning(
+                request,
+                "NOWPayments response data:", response_data
+            )  # Debugging line
             messages.success(
                 request,
                 "Payment created successfully. Redirecting to payment page."
             )
-            # Update the payment with the nowpayments payment ID
             payment_id = response_data.get("payment_id")
             if payment_id:
                 payment.payment_id = payment_id
                 payment.save()
-                return redirect(response_data["invoice_url"])
+                return redirect(response_data.get("invoice_url", "/"))
             else:
-                messages.error(
-                    request,
+                error_message = response_data.get(
+                    "error",
                     "Failed to create payment, payment_id missing in response."
                 )
+                messages.error(request, error_message)
                 return JsonResponse({
-                    "error": "Failed to create payment, payment_id missing in response"  # noqa
+                    "error": error_message
                 }, status=response.status_code)
         else:
-            messages.error(
-                request, "Failed to create payment. Please try again."
-            )
-            return JsonResponse(response.json(), status=response.status_code)
+            error_data = response.json()
+            print("NOWPayments error response:", error_data)  # Debugging line
+            error_message = error_data.get(
+                "error",
+                "Failed to create payment. Please try again.")
+            messages.error(request, error_message)
+            return JsonResponse(error_data, status=response.status_code)
 
 
 # IPN (Instant Payment Notification) endpoint for NowPayments
