@@ -930,6 +930,7 @@ class VerifyNowPaymentView(View):
 
 class NowPaymentView(View):
     def get_supported_currencies(self):
+        """Fetch the list of supported currencies from NOWPayments API"""
         headers = {
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
@@ -939,10 +940,11 @@ class NowPaymentView(View):
             "https://api-sandbox.nowpayments.io/v1/currencies", headers=headers
         )
         if response.status_code == 200:
-            return response.json()["currencies"]
+            return response.json().get("currencies", [])
         return []
 
     def get(self, request, order_id):
+        """Handle GET requests to display the create payment page"""
         order = get_object_or_404(CartOrder, id=order_id, user=request.user)
         supported_currencies = self.get_supported_currencies()
         return render(
@@ -955,6 +957,7 @@ class NowPaymentView(View):
         )
 
     def post(self, request, order_id):
+        """Handle POST requests to create a new payment"""
         order = get_object_or_404(CartOrder, id=order_id, user=request.user)
         pay_currency = request.POST.get("pay_currency")
 
@@ -972,6 +975,9 @@ class NowPaymentView(View):
                 "payment_id": Payment.generate_payment_id(),
             },
         )
+
+        # Debug: Log the payment_id
+        print(f"Payment ID before request: {payment.payment_id}")
 
         # Prepare the request payload
         payload = {
@@ -1020,6 +1026,9 @@ class NowPaymentView(View):
                     "error",
                     "Failed to create payment, payment_id missing in response."
                 )
+                # Debug: Log the error message and payment_id
+                print(f"Error message: {error_message}")
+                print(f"Payment ID after request: {payment.payment_id}")
                 messages.error(request, error_message)
                 return redirect("ecommerce:payment_failed")
         else:
@@ -1031,10 +1040,10 @@ class NowPaymentView(View):
             return redirect("ecommerce:payment_failed")
 
 
-# IPN (Instant Payment Notification) endpoint for NowPayments
 @method_decorator(csrf_exempt, name="dispatch")
 class IPNView(View):
     def post(self, request, *args, **kwargs):
+        """Handle IPN (Instant Payment Notification) from NOWPayments"""
         data = json.loads(request.body)
         order_id = data.get("order_id")
         messages.info(request, f"IPN received for order ID: {order_id}")
