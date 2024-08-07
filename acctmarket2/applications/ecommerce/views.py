@@ -924,7 +924,7 @@ class NowPaymentView(View):
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
         # Uncomment this line and comment the sandbox URL for production
-        # response = requests.get("https://api.nowpayments.io/v1/currencies", headers=headers)                  # noqa
+        # response = requests.get("https://api.nowpayments.io/v1/currencies", headers=headers)  # noqa
         response = requests.get(
             "https://api-sandbox.nowpayments.io/v1/currencies", headers=headers
         )
@@ -935,7 +935,10 @@ class NowPaymentView(View):
     def get(self, request, order_id):
         order = get_object_or_404(CartOrder, id=order_id, user=request.user)
         supported_currencies = self.get_supported_currencies()
-        return render(request, "pages/ecommerce/create_nowpayment.html", {
+        return render(
+            request,
+            "pages/ecommerce/create_nowpayment.html",
+            {
                 "supported_currencies": supported_currencies,
                 "order": order,
             },
@@ -955,8 +958,8 @@ class NowPaymentView(View):
             defaults={
                 "user": request.user,
                 "amount": order.price,
-                "reference": Payment.reference,
-                "payment_id": Payment.payment_id,
+                "reference": Payment.generate_unique_reference(),
+                "payment_id": Payment.generate_payment_id(),
             },
         )
 
@@ -965,14 +968,16 @@ class NowPaymentView(View):
             "price_amount": str(order.price),
             "price_currency": "USD",
             "pay_currency": pay_currency,
-            "ipn_callback_url": request.build_absolute_uri(reverse("ecommerce:ipn")),               # noqa
+            "ipn_callback_url": request.build_absolute_uri(reverse(
+                "ecommerce:ipn")),
             "order_id": str(order.id),
             "order_description": f"Order #{order.id} for user {order.user.id}",
-            # Include query parameters for success_url and redirect to PaymentCompleteView                      # noqa
             "success_url": request.build_absolute_uri(
                 reverse("ecommerce:payment_complete")
             ) + f"?order_id={order.id}&payment_reference={payment.reference}",
-            "cancel_url": request.build_absolute_uri(reverse("ecommerce:payment_failed"))              # noqa
+            "cancel_url": request.build_absolute_uri(reverse(
+                "ecommerce:payment_failed")
+            )
         }
 
         # Send the request to NOWPayments
@@ -980,13 +985,12 @@ class NowPaymentView(View):
             "x-api-key": settings.NOWPAYMENTS_API_KEY,
         }
         # Uncomment this line and comment the sandbox URL for production
-        # response = requests.post("https://api.nowpayments.io/v1/invoice", json=payload, headers=headers)                  # noqa
-        response = requests.post("https://api-sandbox.nowpayments.io/v1/invoice", json=payload, headers=headers)       # noqa
+        # response = requests.post("https://api.nowpayments.io/v1/invoice", json=payload, headers=headers)  # noqa
+        response = requests.post("https://api-sandbox.nowpayments.io/v1/invoice", json=payload, headers=headers)  # noqa
 
         # Process the response
         if response.status_code == 200:
             response_data = response.json()
-            # Use Django messages to inform the user
             messages.success(
                 request,
                 "Payment created successfully. Redirecting to payment page."
@@ -996,18 +1000,15 @@ class NowPaymentView(View):
             if payment_id:
                 payment.payment_id = payment_id
                 payment.save()
-                # Redirect the user to the payment page
                 return redirect(response_data["invoice_url"])
             else:
-                # Handle missing payment_id in the response
                 messages.error(
                     request,
                     "Failed to create payment, payment_id missing in response."
                 )
                 return JsonResponse({
-                    "error": "Failed to create payment, payment_id missing in response"      # noqa
-                    }, status=response.status_code
-                )
+                    "error": "Failed to create payment, payment_id missing in response"  # noqa
+                }, status=response.status_code)
         else:
             messages.error(
                 request, "Failed to create payment. Please try again."
