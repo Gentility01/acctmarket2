@@ -341,15 +341,25 @@ class Payment(TimeBasedModel):
 
     def verify_payment_nowpayments(self):
         nowpayment = NowPayment()
-        result = nowpayment.verify_payment(self.payment_id)
-        logging.info(f"NowPayments verification result: {result}")
-        if not result or not result.get("status"):
-            logging.error("No response from NowPayments API")
+        if not self.payment_id:
+            logging.error("Payment ID is missing.")
             self.status = "failed"
             self.save()
             return False
-        if result and result.get("payment_status") == "confirmed":
-            nowpayments_amount = Decimal(result["pay_amount"])
+
+        result = nowpayment.verify_payment(self.payment_id)
+        logging.info(f"NowPayments verification result: {result}")
+
+        if not result or not result.get("status"):
+            logging.error(
+                "No response from NowPayments API or status is false"
+            )
+            self.status = "failed"
+            self.save()
+            return False
+
+        if result.get("payment_status") == "confirmed":
+            nowpayments_amount = Decimal(result.get("pay_amount", 0))
             if nowpayments_amount == self.amount:
                 self.status = "verified"
                 self.verified = True
@@ -358,6 +368,7 @@ class Payment(TimeBasedModel):
                 self.order.paid_status = True
                 self.order.save()
                 return True
+
         self.status = "failed"
         self.save()
         return False

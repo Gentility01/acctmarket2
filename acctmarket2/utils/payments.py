@@ -51,7 +51,7 @@ class NowPayment:
 
         Returns:
             dict: The response from the API call.
-            Includes status and data or message.
+                  Includes status and data or message.
         """
         url = f"{self.NOWPAYMENTS_API_URL}invoice"
         headers = {
@@ -59,7 +59,8 @@ class NowPayment:
             "Content-Type": "application/json",
         }
         data = {
-            "price_amount": amount,
+            # Convert to integer amount in smallest unit
+            "price_amount": int(amount * 100),
             "price_currency": currency,
             "order_id": str(order_id),
             "order_description": description,
@@ -80,26 +81,22 @@ class NowPayment:
             if "id" in result:  # "id" is the correct field to check
                 return {"status": True, "data": result}
             else:
-                return {
-                    "status": False,
-                    "message": "Payment ID missing in response"
-                }
+                return {"status": False, "message": "Payment ID missing in response"}  # noqa
         else:
             # Handle error appropriately
-            return {"status": False, "message": result.get(
-                "message", "Unknown error"
-            )}
+            return {"status": False, "message": result.get("message", "Unknown error")}  # noqa
 
     def verify_payment(self, payment_id):
         """
         Verify the payment using the NOWPayments API.
 
         Args:
-            payment_id (str): The ID of the payment to be verified.
+            payment_id (int): The ID of the payment
+            to be verified (must be a number).
 
         Returns:
             tuple: A tuple with a boolean
-            indicating success and the response data or None.
+                   indicating success and the response data or None.
         """
         headers = {
             "x-api-key": self.NOWPAYMENTS_API_KEY,
@@ -110,7 +107,7 @@ class NowPayment:
         if response.status_code == 200:
             return True, response.json()
 
-        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"   # noqa
+        error_message = f"Failed to verify payment: {response.status_code}, {response.text}"  # noqa
         return False, error_message
 
 
