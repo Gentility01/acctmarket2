@@ -875,6 +875,9 @@ class VerifyNowPaymentView(View):
     def get(self, request, reference):
         return self.verify_and_process_payment(request, reference)
 
+    def post(self, request, reference):
+        return self.verify_and_process_payment(request, reference)
+
 
 class NowPaymentView(View):
     def get_supported_currencies(self):
