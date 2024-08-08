@@ -811,10 +811,9 @@ class VerifyNowPaymentView(View):
 
         nowpayment = NowPayment()
         # Ensure payment_id is passed as an integer
-        success, result = nowpayment.verify_payment(int(payment.payment_id))  # Ensure it's int    # noqa
+        success, result = nowpayment.verify_payment(int(payment.payment_id))  # Ensure it's int  # noqa
 
-        # Debug statement to show the result
-        # of the NowPayments verification
+        # Debug statement to show the result of the NowPayments verification
         messages.warning(
             request,
             f"NowPayments verification result: {result}"
@@ -845,14 +844,14 @@ class VerifyNowPaymentView(View):
                         )
                         send_mail(
                             "Your Purchase is Complete",
-                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",    # noqa
+                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",  # noqa
                             settings.DEFAULT_FROM_EMAIL,
                             [request.user.email],
                             fail_silently=False,
                         )
                         messages.success(
                             request,
-                            "Verification successful. Check your email for access to your products."    # noqa
+                            "Verification successful. Check your email for access to your products."  # noqa
                         )
                         # Redirect to payment complete page
                         return redirect("ecommerce:payment_complete")
@@ -893,7 +892,7 @@ class NowPaymentView(View):
             "https://api-sandbox.nowpayments.io/v1/currencies", headers=headers
         )
         # Uncomment the following line for production use
-        # response = requests.get("https://api.nowpayments.io/v1/currencies", headers=headers)   # noqa
+        # response = requests.get("https://api.nowpayments.io/v1/currencies", headers=headers)  # noqa
 
         if response.status_code == 200:
             return response.json().get("currencies", [])
@@ -963,7 +962,7 @@ class NowPaymentView(View):
             json=payload, headers=headers
         )
         # Uncomment the following line for production use
-        # response = requests.post("https://api.nowpayments.io/v1/invoice", json=payload, headers=headers)    # noqa
+        # response = requests.post("https://api.nowpayments.io/v1/invoice", json=payload, headers=headers)  # noqa
 
         # Process the response
         if response.status_code == 200:
@@ -979,7 +978,7 @@ class NowPaymentView(View):
                 payment.save()
                 return redirect(response_data.get("invoice_url", "/"))
             else:
-                error_message = "Failed to create payment, payment_id missing in response."    # noqa
+                error_message = "Failed to create payment, payment_id missing in response."  # noqa
                 messages.error(request, error_message)
                 return redirect("ecommerce:payment_failed")
         else:
