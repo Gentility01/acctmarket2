@@ -800,14 +800,6 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 
 class VerifyNowPaymentView(View):
-    def post(self, request, reference, *args, **kwargs):
-        # Debug statement to show the received payment reference
-        messages.warning(
-            request,
-            f"Received payment reference: {reference}"
-        )
-        return self.verify_and_process_payment(request, reference)
-
     def verify_and_process_payment(self, request, reference):
         payment = get_object_or_404(Payment, reference=reference)
 
@@ -818,7 +810,8 @@ class VerifyNowPaymentView(View):
         )
 
         nowpayment = NowPayment()
-        success, result = nowpayment.verify_payment(reference)
+        # Ensure payment_id is passed as an integer
+        success, result = nowpayment.verify_payment(int(payment.payment_id))  # Ensure it's int    # noqa
 
         # Debug statement to show the result
         # of the NowPayments verification
@@ -874,58 +867,6 @@ class VerifyNowPaymentView(View):
         payment.save()
         messages.error(request, "Verification failed.")
         return redirect("ecommerce:payment_failed")
-
-    def assign_unique_keys_to_order(self, order_id):
-        order = get_object_or_404(CartOrder, id=order_id)
-
-        for order_item in order.order_items.all():
-            product = order_item.product
-            quantity = order_item.quantity
-
-            available_keys = ProductKey.objects.select_for_update().filter(
-                product=product, is_used=False
-            )[:quantity]
-
-            if len(available_keys) < quantity:
-                self.handle_insufficient_keys(order_item, available_keys)
-                continue
-
-            keys_and_passwords = []
-
-            for i in range(quantity):
-                product_key = available_keys[i]
-                product_key.is_used = True
-                product_key.save()
-                keys_and_passwords.append({
-                    "key": product_key.key,
-                    "password": product_key.password
-                })
-
-            order_item.keys_and_passwords = keys_and_passwords
-            order_item.save()
-
-            product.quantity_in_stock -= quantity
-            if product.quantity_in_stock < 1:
-                product.visible = False
-            product.save()
-
-    def handle_insufficient_keys(self, order_item, available_keys):
-        keys_and_passwords = []
-
-        for key in available_keys:
-            key.is_used = True
-            key.save()
-            keys_and_passwords.append({
-                "key": key.key,
-                "password": key.password
-            })
-
-        order_item.keys_and_passwords = keys_and_passwords
-        order_item.save()
-
-        product = order_item.product
-        user = order_item.order.user
-        notify_user_insufficient_keys(user, product)
 
 
 class NowPaymentView(View):

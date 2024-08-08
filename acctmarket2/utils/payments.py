@@ -79,7 +79,8 @@ class NowPayment:
 
         if response.status_code == 200:
             if "id" in result:  # "id" is the correct field to check
-                return {"status": True, "data": result}
+                # Ensure payment_id is stored as an integer
+                return {"status": True, "data": {"id": int(result["id"])}}  # Convert to int    # noqa
             else:
                 return {"status": False, "message": "Payment ID missing in response"}  # noqa
         else:
@@ -91,12 +92,13 @@ class NowPayment:
         Verify the payment using the NOWPayments API.
 
         Args:
-            payment_id (int): The ID of the payment
-            to be verified (must be a number).
+            ###### Ensure payment_id is an integer ######
+            payment_id (int):
+            The ID of the payment to be verified (must be a number).
 
         Returns:
             tuple: A tuple with a boolean
-                   indicating success and the response data or None.
+            indicating success and the response data or None.
         """
         headers = {
             "x-api-key": self.NOWPAYMENTS_API_KEY,

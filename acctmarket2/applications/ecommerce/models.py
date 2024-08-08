@@ -305,7 +305,8 @@ class Payment(TimeBasedModel):
             self.reference = self.generate_unique_reference()
         if not self.payment_id:
             # Generate unique payment_id
-            self.payment_id = self.generate_payment_id()
+            # Store payment_id as an integer
+            self.payment_id = int(self.generate_payment_id())  # Convert to int
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -348,10 +349,11 @@ class Payment(TimeBasedModel):
             self.save()
             return False
 
-        result = nowpayment.verify_payment(self.payment_id)
+        # Pass payment_id as an integer
+        success, result = nowpayment.verify_payment(int(self.payment_id))  # Ensure it's int     # noqa
         logging.info(f"NowPayments verification result: {result}")
 
-        if not result or not result.get("status"):
+        if not success or not result.get("status"):
             logging.error(
                 "No response from NowPayments API or status is false"
             )
