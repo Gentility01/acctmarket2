@@ -310,7 +310,8 @@ class Payment(TimeBasedModel):
 
     @staticmethod
     def generate_payment_id():
-        return Payment.objects.latest("id").id + 1 if Payment.objects.exists() else 1  # noqa
+        latest_id = Payment.objects.latest("id").id if Payment.objects.exists() else 0  # noqa
+        return latest_id + 1
 
     @staticmethod
     def generate_unique_reference():
