@@ -801,6 +801,7 @@ class InitiatePaymentView(LoginRequiredMixin, TemplateView):
 
 class VerifyNowPaymentView(View):
     def verify_and_process_payment(self, request, reference):
+        # Fetch the payment object using the provided reference
         payment = get_object_or_404(Payment, reference=reference)
 
         # Debug statement to show that the payment verification is starting
@@ -810,8 +811,9 @@ class VerifyNowPaymentView(View):
         )
 
         nowpayment = NowPayment()
+
         # Ensure payment_id is passed as an integer
-        success, result = nowpayment.verify_payment(int(payment.payment_id))  # Ensure it's int  # noqa
+        success, result = nowpayment.verify_payment(int(payment.payment_id))
 
         # Debug statement to show the result of the NowPayments verification
         messages.warning(
@@ -820,51 +822,61 @@ class VerifyNowPaymentView(View):
         )
 
         if not success:
+            # Mark payment as failed and save the status
             payment.status = "failed"
             payment.save()
             messages.error(request, result)
             return redirect("ecommerce:payment_failed")
 
+        # Check if the payment status returned from NowPayments is "confirmed"
         if result.get("payment_status") == "confirmed":
+            # Convert the amount returned from NowPayments to a Decimal
             nowpayments_amount = Decimal(result.get("pay_amount", "0"))
+            # Compare the amount returned from NowPayments
+            # with the expected payment amount
             if nowpayments_amount == payment.amount:
                 try:
+                    # Use an atomic transaction to ensure data integrity
                     with transaction.atomic():
                         payment.status = "verified"
                         payment.verified = True
                         payment.amount = nowpayments_amount
                         payment.save()
 
-                        # Assign unique keys and passwords
+                        # Assign unique keys and passwords to the order items
                         self.assign_unique_keys_to_order(payment.order.id)
 
-                        # Send email notification
+                        # Build the URL to access purchased products
                         purchased_product_url = request.build_absolute_uri(
                             reverse("ecommerce:purchased_products")
                         )
+
+                        # Send an email notification to the user
                         send_mail(
                             "Your Purchase is Complete",
-                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",  # noqa
+                            f"Thank you for your purchase.\nYou can access your purchased products here: {purchased_product_url}",    # noqa
                             settings.DEFAULT_FROM_EMAIL,
                             [request.user.email],
                             fail_silently=False,
                         )
+
                         messages.success(
                             request,
-                            "Verification successful. Check your email for access to your products."  # noqa
+                            "Verification successful. Check your email for access to your products."    # noqa
                         )
-                        # Redirect to payment complete page
+
+                        # Redirect to the payment complete page
                         return redirect("ecommerce:payment_complete")
 
                 except Exception as e:
-                    # Handle exception and redirect to support
+                    # Handle exception and redirect to support page
                     messages.error(
                         request,
                         f"Verification succeeded but an issue occurred: {e}"
                     )
                     return redirect("ecommerce:support")
 
-        # Mark payment as failed if verification was not confirmed
+        # If the payment verification was not confirmed, mark it as failed
         payment.status = "failed"
         payment.save()
         messages.error(request, "Verification failed.")
@@ -872,9 +884,13 @@ class VerifyNowPaymentView(View):
         return redirect("ecommerce:payment_failed")
 
     def get(self, request, reference):
+        # Handle GET requests by invoking
+        # the verification and processing method
         return self.verify_and_process_payment(request, reference)
 
     def post(self, request, reference):
+        # Handle POST requests by invoking
+        # the verification and processing method
         return self.verify_and_process_payment(request, reference)
 
 

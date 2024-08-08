@@ -303,10 +303,8 @@ class Payment(TimeBasedModel):
         if not self.reference:
             # Generate unique reference
             self.reference = self.generate_unique_reference()
-        if not self.payment_id:
-            # Generate unique payment_id
-            # Store payment_id as an integer
-            self.payment_id = int(self.generate_payment_id())  # Convert to int
+        if not self.pk and not self.payment_id:
+            self.payment_id = self.generate_payment_id()
         super().save(*args, **kwargs)
 
     @staticmethod

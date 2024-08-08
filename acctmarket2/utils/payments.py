@@ -103,7 +103,7 @@ class NowPayment:
         headers = {
             "x-api-key": self.NOWPAYMENTS_API_KEY,
         }
-        url = f"{self.NOWPAYMENTS_API_URL}payment/{payment_id}"
+        url = f"{self.NOWPAYMENTS_API_URL}payment/{int(payment_id)}"
         response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
