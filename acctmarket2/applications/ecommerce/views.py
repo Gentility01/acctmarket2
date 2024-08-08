@@ -854,19 +854,26 @@ class VerifyNowPaymentView(View):
                             request,
                             "Verification successful. Check your email for access to your products."    # noqa
                         )
+                        # Redirect to payment complete page
                         return redirect("ecommerce:payment_complete")
 
                 except Exception as e:
+                    # Handle exception and redirect to support
                     messages.error(
                         request,
                         f"Verification succeeded but an issue occurred: {e}"
                     )
                     return redirect("ecommerce:support")
 
+        # Mark payment as failed if verification was not confirmed
         payment.status = "failed"
         payment.save()
         messages.error(request, "Verification failed.")
+        # Redirect to payment failed page
         return redirect("ecommerce:payment_failed")
+
+    def get(self, request, reference):
+        return self.verify_and_process_payment(request, reference)
 
 
 class NowPaymentView(View):
