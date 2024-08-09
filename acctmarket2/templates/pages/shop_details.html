@@ -14,13 +14,13 @@
               <ul class="nav nav-tabs products-nav-tabs">
                 <li>
                   <a class="active" data-toggle="tab" href="#product-main-tab">
-                    <img src="{{ product.image.url }}" alt="Main Product Image" />
+                    {% comment %} <img src="{{ product.image.url }}" alt="Main Product Image" /> {% endcomment %}
                   </a>
                 </li>
                 {% for image in product_images %}
                   <li>
                     <a data-toggle="tab" href="#product-{{ forloop.index }}">
-                      <img src="{{ image.image.url }}" alt="Product Image {{ forloop.index }}" />
+                      {% comment %} <img src="{{ image.image.url }}" alt="Product Image {{ forloop.index }}" /> {% endcomment %}
                     </a>
                   </li>
                 {% endfor %}
@@ -36,7 +36,7 @@
                     <img src="{{ product.image.url }}" alt="Main Product Image" />
                   </div>
                 </div>
-                {% for image in product_images %}
+                {% comment %} {% for image in product_images %}
                   <div id="product-{{ forloop.index }}" class="tab-pane fade">
                     <div class="product-details-thumb">
                       <a class="venobox" data-gall="myGallery" href="{{ image.image.url }}">
@@ -45,7 +45,7 @@
                       <img src="{{ image.image.url }}" alt="Product Image {{ forloop.index }}" />
                     </div>
                   </div>
-                {% endfor %}
+                {% endfor %} {% endcomment %}
               </div>
             </div>
             <div class="col-lg-7 mt-sm-50">
@@ -128,8 +128,8 @@
                   <div class="product-features mt-50">
                     <ul class="list-none">
                       <li>Satisfaction 100% Guaranteed</li>
-                      <li>Free shipping on orders over $99</li>
-                      <li>14 day easy Return</li>
+                      <li>Instant Delivery</li>
+                      <li>Secured payment</li>
                     </ul>
                   </div>
                 </div>
