@@ -16,15 +16,16 @@
         <div class="mini-cart text-right">
           <ul>
             <li>
-              <a href="{% url 'ecommerce:wishlists' %}"><i class="icon_heart_alt"></i><span>{{ wishlist.count }}</span></a>
+              <a href="{% url 'ecommerce:wishlists' %}"><i
+                  class="icon_heart_alt"></i><span>{{ wishlist.count }}</span></a>
             </li>
             <li class="minicart-icon">
-              <a href="#"><i class="icon_bag_alt"></i><span class="cart-item-count">{{ request.session.cart_data_obj|length }}</span></a>
+              <a href="#"><i class="icon_bag_alt"></i><span
+                  class="cart-item-count">{{ request.session.cart_data_obj|length }}</span></a>
               <div class="cart-dropdown">
                 <div class="mini-cart-checkout">
                   <a href="{% url 'ecommerce:cart_list' %}" class="btn-common view-cart">VIEW CART</a>
-                  <a href="{% url 'ecommerce:checkout' %}"
-                     class="btn-common checkout mt-10">CHECK OUT</a>
+                  <a href="{% url 'ecommerce:checkout' %}" class="btn-common checkout mt-10">CHECK OUT</a>
                 </div>
               </div>
             </li>
@@ -35,15 +36,13 @@
     <!--search-box-->
     <div class="row align-items-center">
       <div class="col-sm-12">
-        <form method="Get"
-              action="{% url 'homeapp:search' %}"
-              class="search-box mt-sm-15">
+        <form method="Get" action="{% url 'homeapp:search' %}" class="search-box mt-sm-15">
           <select>
             <option>All Categories</option>
             {% for cats in top_categories %}
-              <option>
-                <a href="">{{ cats.title }}</a>
-              </option>
+            <option>
+              <a href="">{{ cats.title }}</a>
+            </option>
             {% endfor %}
           </select>
           <input type="text" name="q" placeholder="What do you need?" />
@@ -75,31 +74,31 @@
                 <a href="{% url 'homeapp:contact_us' %}">Contact</a>
               </li>
               {% if request.user.is_authenticated %}
-                <li>
-                  <a href="#">User </a>
-                  <ul class="submenu">
-                    <li>
-                      <a href="{% url 'users:dashboard_view' %}">Dashboard</a>
-                    </li>
-                    <li>
-                      <a href="{% url 'account_logout' %}">Signout</a>
-                    </li>
-                  </ul>
-                </li>
+              <li>
+                <a href="#">User </a>
+                <ul class="submenu">
+                  <li>
+                    <a href="{% url 'users:dashboard_view' %}">Dashboard</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'account_logout' %}">Signout</a>
+                  </li>
+                </ul>
+              </li>
               {% else %}
-                <li>
-                  <a href="#">User <b class="caret"></b></a>
-                  <ul class="submenu">
-                    {% if ACCOUNT_ALLOW_REGISTRATION %}
-                      <li>
-                        <a href="{% url 'users:customers_account' %}">Signup</a>
-                      </li>
-                    {% endif %}
-                    <li>
-                      <a href="{% url 'account_login' %}">Signin</a>
-                    </li>
-                  </ul>
-                </li>
+              <li>
+                <a href="#">User <b class="caret"></b></a>
+                <ul class="submenu">
+                  {% if ACCOUNT_ALLOW_REGISTRATION %}
+                  <li>
+                    <a href="{% url 'users:customers_account' %}">Signup</a>
+                  </li>
+                  {% endif %}
+                  <li>
+                    <a href="{% url 'account_login' %}">Signin</a>
+                  </li>
+                </ul>
+              </li>
               {% endif %}
             </ul>
           </nav>
@@ -108,42 +107,39 @@
         <div class="collapse-menu mt-0 pull-right">
           <ul>
             <li>
-              <a href="javascript:void(0);" class="vm-menu"><i class="fa fa-navicon"></i><span>All
-              Categories  <b class="caret"></b></span></a>
+              <a href="" class="vm-menu"><i class="fa fa-navicon"></i><span>All
+                  Categories <b class="caret"></b></span></a>
               <ul class="vm-dropdown">
                 {% for category in top_categories %}
-                  {% if not category.sub_category %}
-                    <li>
+                {% if not category.sub_category %}
+                <li>
+                  <a href="{% url 'homeapp:category_list' category_slug=category.slug %}">
+                    <img height="15" width="15" src="{{ category.image.url }}" alt="" />
+                    <span>{{ category.title }}</span>
+                    {% if category.subcategories.exists %}<b class="caret"></b>{% endif %}
+                  </a>
+                  {% if category.subcategories.exists %}
+                  <ul class="mega-menu">
+                    {% for subcategory in category.subcategories.all %}
+                    <li class="megamenu-single">
                       <a href="#">
-                        <img height="15"
-                             width="15"
-                             src="{% static '{{ category.image.url }}' %}"
-                             alt="" />
-                        <span>{{ category.title }}</span>
-                        {% if category.subcategories.exists %}<b class="caret"></b>{% endif %}
+                        <span class="mega-menu-title">{{ subcategory.title }}</span>
                       </a>
-                      {% if category.subcategories.exists %}
-                        <ul class="mega-menu">
-                          {% for subcategory in category.subcategories.all %}
-                            <li class="megamenu-single">
-                              <a href="#">
-                                <span class="mega-menu-title">{{ subcategory.title }}</span>
-                              </a>
-                              {% if subcategory.subcategories.exists %}
-                                <ul>
-                                  {% for sub_subcategory in subcategory.subcategories.all %}
-                                    <li>
-                                      <a href="#">{{ sub_subcategory.title }}</a>
-                                    </li>
-                                  {% endfor %}
-                                </ul>
-                              {% endif %}
-                            </li>
-                          {% endfor %}
-                        </ul>
+                      {% if subcategory.subcategories.exists %}
+                      <ul>
+                        {% for sub_subcategory in subcategory.subcategories.all %}
+                        <li>
+                          <a href="#">{{ sub_subcategory.title }}</a>
+                        </li>
+                        {% endfor %}
+                      </ul>
                       {% endif %}
                     </li>
+                    {% endfor %}
+                  </ul>
                   {% endif %}
+                </li>
+                {% endif %}
                 {% endfor %}
               </ul>
             </li>
